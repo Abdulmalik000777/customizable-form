@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import Layout from "../../components/layout";
 import Link from "next/link";
 import {
@@ -7,9 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
+import { ButtonProps, buttonVariants } from "../../components/ui/button";
 import { Plus, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
+import { fetchWithAuth } from "../../utils/api";
+import { cn } from "../../utils/cn";
+import SlotComponent from "../../components/ui/slot";
+import { useAuth } from "../../contexts/auth-context";
+import { ProtectedRoute } from "../../components/protected-route";
 
 interface Template {
   id: string;
@@ -21,18 +27,36 @@ interface Template {
   };
 }
 
-export default function Templates() {
-  const [templates, setTemplates] = React.useState<Template[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? SlotComponent : "button";
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = "Button";
 
-  React.useEffect(() => {
+function TemplatesPage() {
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { logout } = useAuth();
+
+  useEffect(() => {
     async function fetchTemplates() {
       try {
-        const response = await fetch("/api/templates");
+        const response = await fetchWithAuth("/api/templates");
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to fetch templates");
+          if (response.status === 401) {
+            logout();
+            return;
+          }
+          throw new Error("Failed to fetch templates");
         }
         const data = await response.json();
         setTemplates(data);
@@ -49,7 +73,7 @@ export default function Templates() {
     }
 
     fetchTemplates();
-  }, []);
+  }, [logout]);
 
   return (
     <Layout>
@@ -136,5 +160,13 @@ export default function Templates() {
         )}
       </div>
     </Layout>
+  );
+}
+
+export default function Templates() {
+  return (
+    <ProtectedRoute>
+      <TemplatesPage />
+    </ProtectedRoute>
   );
 }

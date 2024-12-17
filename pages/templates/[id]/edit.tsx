@@ -1,17 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import { useRouter } from "next/router";
-import Layout from "../../components/layout";
+import Layout from "../../../components/layout";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { ButtonProps, buttonVariants } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
+} from "../../../components/ui/card";
+import { ButtonProps, buttonVariants } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
+import { Textarea } from "../../../components/ui/textarea";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "../../../components/ui/alert";
 import {
   PlusCircle,
   Type,
@@ -19,10 +23,10 @@ import {
   Hash,
   ToggleLeft,
   AlertCircle,
+  Save,
 } from "lucide-react";
-import { fetchWithAuth } from "../../utils/api";
-import { cn } from "../../utils/cn";
-import Slot from "../../components/ui/slot";
+import { cn } from "../../../utils/cn";
+import Slot from "../../../components/ui/slot";
 
 type QuestionType = "short-text" | "long-text" | "number" | "checkbox";
 
@@ -34,13 +38,47 @@ interface Question {
   required: boolean;
 }
 
-export default function CreateTemplate() {
+interface Template {
+  id: string;
+  title: string;
+  description: string;
+  questions: Question[];
+}
+
+export default function EditTemplate() {
   const router = useRouter();
+  const { id } = router.query;
+  const [template, setTemplate] = useState<Template | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      fetchTemplate();
+    }
+  }, [id]);
+
+  const fetchTemplate = async () => {
+    try {
+      const response = await fetch(`/api/templates/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch template");
+      }
+      const data = await response.json();
+      setTemplate(data);
+      setTitle(data.title);
+      setDescription(data.description);
+      setQuestions(data.questions);
+    } catch (error) {
+      setError("Failed to load template");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const addQuestion = (type: QuestionType) => {
     const newQuestion: Question = {
@@ -69,8 +107,8 @@ export default function CreateTemplate() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetchWithAuth("/api/templates/create", {
-        method: "POST",
+      const response = await fetch(`/api/templates/${id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -79,12 +117,12 @@ export default function CreateTemplate() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create template");
+        throw new Error(errorData.error || "Failed to update template");
       }
 
-      router.push("/templates");
+      router.push(`/templates/${id}`);
     } catch (error) {
-      console.error("Error creating template:", error);
+      console.error("Error updating template:", error);
       setError(
         error instanceof Error ? error.message : "An unexpected error occurred"
       );
@@ -93,21 +131,38 @@ export default function CreateTemplate() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <p>Loading template...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl">Create New Template</CardTitle>
+            <CardTitle className="text-3xl">Edit Template</CardTitle>
           </CardHeader>
           <CardContent>
-            {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -221,13 +276,13 @@ export default function CreateTemplate() {
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <PlusCircle className="w-4 h-4 mr-2 animate-spin" />
-                    Creating Template...
+                    <Save className="w-4 h-4 mr-2 animate-spin" />
+                    Updating Template...
                   </>
                 ) : (
                   <>
-                    <PlusCircle className="w-4 h-4 mr-2" />
-                    Create Template
+                    <Save className="w-4 h-4 mr-2" />
+                    Update Template
                   </>
                 )}
               </Button>

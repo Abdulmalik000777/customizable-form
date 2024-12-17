@@ -1,18 +1,19 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
+import {
+  authMiddleware,
+  AuthenticatedRequest,
+} from "../../../lib/authMiddleware";
 
 const prisma = new PrismaClient();
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const { id } = req.query;
 
   if (req.method === "GET") {
     try {
       const template = await prisma.template.findUnique({
-        where: { id: String(id) },
+        where: { id: String(id), userId: req.user!.userId },
         include: { questions: true },
       });
 
@@ -24,11 +25,49 @@ export default async function handler(
     } catch (error) {
       console.error("Error fetching template:", error);
       res.status(500).json({ error: "Error fetching template" });
-    } finally {
-      await prisma.$disconnect();
+    }
+  } else if (req.method === "PUT") {
+    try {
+      const { title, description, questions } = req.body;
+
+      const updatedTemplate = await prisma.template.update({
+        where: { id: String(id), userId: req.user!.userId },
+        data: {
+          title,
+          description,
+          questions: {
+            deleteMany: {},
+            create: questions.map((q: any) => ({
+              type: q.type,
+              title: q.title,
+              description: q.description,
+              required: q.required,
+            })),
+          },
+        },
+        include: { questions: true },
+      });
+
+      res.status(200).json(updatedTemplate);
+    } catch (error) {
+      console.error("Error updating template:", error);
+      res.status(500).json({ error: "Error updating template" });
+    }
+  } else if (req.method === "DELETE") {
+    try {
+      await prisma.template.delete({
+        where: { id: String(id), userId: req.user!.userId },
+      });
+
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ error: "Error deleting template" });
     }
   } else {
-    res.setHeader("Allow", ["GET"]);
+    res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+export default authMiddleware(handler);

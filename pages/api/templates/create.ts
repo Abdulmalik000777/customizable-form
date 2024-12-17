@@ -1,12 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
+import {
+  authMiddleware,
+  AuthenticatedRequest,
+} from "../../../lib/authMiddleware";
 
 const prisma = new PrismaClient();
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     try {
       const { title, description, questions } = req.body;
@@ -15,6 +16,7 @@ export default async function handler(
         data: {
           title,
           description,
+          userId: req.user!.userId,
           questions: {
             create: questions.map((q: any) => ({
               type: q.type,
@@ -41,3 +43,5 @@ export default async function handler(
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+export default authMiddleware(handler);

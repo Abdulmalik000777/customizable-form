@@ -1,15 +1,17 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
+import {
+  authMiddleware,
+  AuthenticatedRequest,
+} from "../../../lib/authMiddleware";
 
 const prisma = new PrismaClient();
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     try {
       const templates = await prisma.template.findMany({
+        where: { userId: req.user!.userId },
         select: {
           id: true,
           title: true,
@@ -35,3 +37,5 @@ export default async function handler(
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+export default authMiddleware(handler);
