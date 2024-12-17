@@ -12,7 +12,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
   if (req.method === "GET") {
     try {
-      const template = await prisma.template.findUnique({
+      const template = await prisma.template.findFirst({
         where: { id: String(id), userId: req.user!.userId },
         include: { questions: true },
       });
@@ -31,7 +31,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       const { title, description, questions } = req.body;
 
       const updatedTemplate = await prisma.template.update({
-        where: { id: String(id), userId: req.user!.userId },
+        where: { id: String(id) },
         data: {
           title,
           description,
@@ -48,6 +48,12 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         include: { questions: true },
       });
 
+      if (updatedTemplate.userId !== req.user!.userId) {
+        return res
+          .status(403)
+          .json({ error: "Not authorized to update this template" });
+      }
+
       res.status(200).json(updatedTemplate);
     } catch (error) {
       console.error("Error updating template:", error);
@@ -55,8 +61,16 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     }
   } else if (req.method === "DELETE") {
     try {
-      await prisma.template.delete({
+      const template = await prisma.template.findFirst({
         where: { id: String(id), userId: req.user!.userId },
+      });
+
+      if (!template) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+
+      await prisma.template.delete({
+        where: { id: String(id) },
       });
 
       res.status(204).end();
