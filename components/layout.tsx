@@ -1,65 +1,55 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { useRouter } from "next/router";
+import { useAuth } from "../contexts/auth-context";
+import { Button } from "./ui/button";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { isAuthenticated, logout } = useAuth();
+  const router = useRouter();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <header className="bg-gray-100 dark:bg-gray-800 py-4">
-        <nav className="container mx-auto px-4 flex justify-between items-center">
-          <Link
-            href="/"
-            className="text-2xl font-bold text-gray-800 dark:text-white"
-          >
-            FormCraft
-          </Link>
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/templates"
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
-            >
-              Templates
+    <div className="min-h-screen bg-background">
+      <header className="bg-card shadow">
+        <nav className="container mx-auto px-6 py-3">
+          <div className="flex justify-between items-center">
+            <Link href="/" className="text-lg font-semibold text-foreground">
+              FormCraft
             </Link>
-            <Link
-              href="/login"
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
-            >
-              Login
-            </Link>
-            {mounted && (
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-5 h-5" />
-                ) : (
-                  <Moon className="w-5 h-5" />
-                )}
-              </button>
-            )}
+            <div className="space-x-4">
+              {isAuthenticated ? (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/templates">Templates</Link>
+                  </Button>
+                  <Button variant="outline" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/register">Register</Link>
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </nav>
       </header>
-      <main className="container mx-auto px-4 py-8">{children}</main>
-      <footer className="bg-gray-100 dark:bg-gray-800 py-4 mt-8">
-        <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-300">
-          © 2024 FormCraft. All rights reserved.
-        </div>
-      </footer>
+      <main className="container mx-auto px-6 py-8">{children}</main>
     </div>
   );
 };

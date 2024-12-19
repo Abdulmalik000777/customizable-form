@@ -5,6 +5,27 @@ import {
   AuthenticatedRequest,
 } from "../../../lib/authMiddleware";
 
+interface Question {
+  id: string;
+  type: string;
+  title: string;
+  description: string | null;
+  required: boolean;
+  templateId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  minLength?: number | null;
+  maxLength?: number | null;
+  minValue?: number | null;
+  maxValue?: number | null;
+  regex?: string | null;
+}
+
+interface Template {
+  id: string;
+  questions: Question[];
+}
+
 const prisma = new PrismaClient();
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {

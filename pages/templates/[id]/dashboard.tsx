@@ -17,64 +17,62 @@ import { AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 import { fetchWithAuth } from "../../../utils/api";
 import { ProtectedRoute } from "../../../components/protected-route";
 import Link from "next/link";
+import { Bar, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend
 );
 
-interface Answer {
-  id: string;
-  value: string;
-  question: {
-    id: string;
-    title: string;
-    type: string;
-  };
+interface QuestionData {
+  questionId: string;
+  title: string;
+  type: string;
+  data: any;
 }
 
-interface Submission {
-  id: string;
-  createdAt: string;
-  answers: Answer[];
+interface AnalyticsData {
+  totalSubmissions: number;
+  questionData: QuestionData[];
 }
 
 function DashboardPage() {
   const router = useRouter();
   const { id } = router.query;
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchSubmissions() {
+    async function fetchAnalytics() {
       if (!id) return;
       setLoading(true);
       try {
-        const response = await fetchWithAuth(
-          `/api/templates/${id}/submissions?limit=1000`
-        );
+        const response = await fetchWithAuth(`/api/templates/${id}/analytics`);
         if (!response.ok) {
-          throw new Error("Failed to fetch submissions");
+          throw new Error("Failed to fetch analytics");
         }
         const data = await response.json();
-        setSubmissions(data.submissions);
+        setAnalyticsData(data);
       } catch (error) {
-        console.error("Error fetching submissions:", error);
+        console.error("Error fetching analytics:", error);
         setError(
           error instanceof Error
             ? error.message
@@ -85,31 +83,8 @@ function DashboardPage() {
       }
     }
 
-    fetchSubmissions();
+    fetchAnalytics();
   }, [id]);
-
-  const prepareChartData = (questionTitle: string) => {
-    const answerCounts: { [key: string]: number } = {};
-    submissions.forEach((submission) => {
-      const answer = submission.answers.find(
-        (a) => a.question.title === questionTitle
-      );
-      if (answer) {
-        answerCounts[answer.value] = (answerCounts[answer.value] || 0) + 1;
-      }
-    });
-
-    return {
-      labels: Object.keys(answerCounts),
-      datasets: [
-        {
-          label: questionTitle,
-          data: Object.values(answerCounts),
-          backgroundColor: "rgba(75, 192, 192, 0.6)",
-        },
-      ],
-    };
-  };
 
   if (loading) {
     return (
@@ -121,13 +96,15 @@ function DashboardPage() {
     );
   }
 
-  if (error) {
+  if (error || !analyticsData) {
     return (
       <Layout>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error || "Failed to load analytics"}
+          </AlertDescription>
         </Alert>
       </Layout>
     );
@@ -146,31 +123,92 @@ function DashboardPage() {
           </Button>
         </div>
 
-        {submissions.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <h3 className="text-xl font-semibold mb-2 text-center">
-                No submissions yet
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-center mb-6">
-                There are no submissions for this template yet.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {submissions[0].answers.map((answer) => (
-              <Card key={answer.question.id}>
-                <CardHeader>
-                  <CardTitle>{answer.question.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Bar data={prepareChartData(answer.question.title)} />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Total Submissions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">
+              {analyticsData.totalSubmissions}
+            </p>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {analyticsData.questionData.map((question) => (
+            <Card key={question.questionId}>
+              <CardHeader>
+                <CardTitle>{question.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {question.type === "number" ? (
+                  <Bar
+                    data={{
+                      labels: ["Average", "Min", "Max"],
+                      datasets: [
+                        {
+                          label: "Value",
+                          data: [
+                            question.data.average,
+                            question.data.min,
+                            question.data.max,
+                          ],
+                          backgroundColor: [
+                            "rgba(75, 192, 192, 0.6)",
+                            "rgba(255, 99, 132, 0.6)",
+                            "rgba(54, 162, 235, 0.6)",
+                          ],
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      plugins: {
+                        legend: {
+                          position: "top" as const,
+                        },
+                        title: {
+                          display: true,
+                          text: "Numeric Response Statistics",
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <Pie
+                    data={{
+                      labels: question.data.map((item: any) => item.value),
+                      datasets: [
+                        {
+                          data: question.data.map((item: any) => item.count),
+                          backgroundColor: [
+                            "rgba(255, 99, 132, 0.6)",
+                            "rgba(54, 162, 235, 0.6)",
+                            "rgba(255, 206, 86, 0.6)",
+                            "rgba(75, 192, 192, 0.6)",
+                            "rgba(153, 102, 255, 0.6)",
+                          ],
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      plugins: {
+                        legend: {
+                          position: "top" as const,
+                        },
+                        title: {
+                          display: true,
+                          text: "Response Distribution",
+                        },
+                      },
+                    }}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </Layout>
   );

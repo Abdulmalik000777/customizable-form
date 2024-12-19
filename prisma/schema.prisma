@@ -41,6 +41,12 @@ model Question {
   answers     Answer[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  // New fields for validation
+  minLength   Int?
+  maxLength   Int?
+  minValue    Float?
+  maxValue    Float?
+  regex       String?
 }
 
 model Submission {

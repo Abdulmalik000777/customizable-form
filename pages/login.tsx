@@ -46,6 +46,18 @@ export default function Login() {
     <Layout>
       <div className="max-w-md mx-auto mt-8">
         <h1 className="text-2xl font-bold mb-4">Login</h1>
+        {router.query.registered === "true" && (
+          <Alert
+            variant="default"
+            className="mb-4 bg-green-100 border-green-400 text-green-700"
+          >
+            <AlertCircle className="h-4 w-4 text-green-400" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>
+              Registration successful. Please log in with your new account.
+            </AlertDescription>
+          </Alert>
+        )}
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
