@@ -5,6 +5,8 @@ import {
   AuthenticatedRequest,
 } from "../../../lib/authMiddleware";
 
+const prisma = new PrismaClient();
+
 interface Question {
   id: string;
   type: string;
@@ -25,8 +27,6 @@ interface Template {
   id: string;
   questions: Question[];
 }
-
-const prisma = new PrismaClient();
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method === "POST") {
