@@ -73,49 +73,50 @@ function SubmissionsPage() {
   const [questions, setQuestions] = useState<string[]>([]);
 
   useEffect(() => {
-    async function fetchSubmissions() {
-      if (!id) return;
-      setLoading(true);
-      try {
-        const queryParams = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: "10",
-          sortBy,
-          sortOrder,
-          ...(filterQuestion && { filterQuestion }),
-          ...(filterValue && { filterValue }),
-        });
-        const response = await fetchWithAuth(
-          `/api/templates/${id}/submissions?${queryParams}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch submissions");
-        }
-        const data = await response.json();
-        setSubmissions(data.submissions);
-        setTotalPages(data.totalPages);
-        setCurrentPage(data.currentPage);
-        if (data.submissions.length > 0) {
-          setQuestions(
-            data.submissions[0].answers.map(
-              (answer: Answer) => answer.question.title
-            )
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching submissions:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred"
-        );
-      } finally {
-        setLoading(false);
-      }
+    if (id) {
+      fetchSubmissions();
     }
-
-    fetchSubmissions();
   }, [id, currentPage, sortBy, sortOrder, filterQuestion, filterValue]);
+
+  const fetchSubmissions = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: "10",
+        sortBy,
+        sortOrder,
+        ...(filterQuestion && { filterQuestion }),
+        ...(filterValue && { filterValue }),
+      });
+      const response = await fetchWithAuth(
+        `/api/templates/${id}/submissions?${queryParams}`
+      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch submissions");
+      }
+      const data = await response.json();
+      setSubmissions(data.submissions);
+      setTotalPages(data.totalPages);
+      setCurrentPage(data.currentPage);
+      if (data.submissions.length > 0) {
+        setQuestions(
+          data.submissions[0].answers.map(
+            (answer: Answer) => answer.question.title
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -133,6 +134,7 @@ function SubmissionsPage() {
   const handleFilter = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
+    fetchSubmissions();
   };
 
   if (loading) {
@@ -148,11 +150,19 @@ function SubmissionsPage() {
   if (error) {
     return (
       <Layout>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="container mx-auto px-4 py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Button variant="outline" asChild className="mt-4">
+            <Link href={`/templates/${id}`}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Template
+            </Link>
+          </Button>
+        </div>
       </Layout>
     );
   }
