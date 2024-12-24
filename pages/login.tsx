@@ -26,18 +26,19 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || "Login failed");
       }
 
-      const { token } = await response.json();
+      const { token } = data;
       login(token);
       router.push("/templates");
     } catch (error) {
       console.error("Login error:", error);
       setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
+        error instanceof Error ? error.message : "Invalid email or password"
       );
     }
   };
