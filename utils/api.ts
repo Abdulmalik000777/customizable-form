@@ -11,20 +11,9 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     "Content-Type": "application/json",
   };
 
+  // If the URL already has query parameters, use '&' instead of '?'
   const separator = url.includes("?") ? "&" : "?";
   const finalUrl = `${url}${separator}_t=${Date.now()}`;
 
-  const response = await fetch(finalUrl, { ...options, headers });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    if (response.status === 401) {
-      throw new Error("Unauthorized: Invalid token");
-    }
-    throw new Error(
-      errorData.message || `HTTP error! status: ${response.status}`
-    );
-  }
-
-  return response;
+  return fetch(finalUrl, { ...options, headers });
 }

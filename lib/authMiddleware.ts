@@ -12,7 +12,6 @@ export function authMiddleware(
   handler: (req: AuthenticatedRequest, res: NextApiResponse) => Promise<void>
 ) {
   return async (req: AuthenticatedRequest, res: NextApiResponse) => {
-    console.log("Authenticating request...");
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -29,7 +28,6 @@ export function authMiddleware(
         userId: string;
         email: string;
       };
-      console.log("Decoded token:", decoded);
       req.user = decoded;
       return handler(req, res);
     } catch (error) {

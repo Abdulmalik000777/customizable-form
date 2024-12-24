@@ -12,6 +12,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
   if (req.method === "GET") {
     try {
+      console.log("Fetching template with id:", id);
+      console.log("User:", req.user);
       const template = await prisma.template.findFirst({
         where: { id: String(id), userId: req.user!.userId },
         include: { questions: true },
@@ -24,7 +26,10 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       res.status(200).json(template);
     } catch (error) {
       console.error("Error fetching template:", error);
-      res.status(500).json({ error: "Error fetching template" });
+      res.status(500).json({
+        error: "Error fetching template",
+        details: error instanceof Error ? error.message : String(error),
+      });
     }
   } else if (req.method === "PUT") {
     try {

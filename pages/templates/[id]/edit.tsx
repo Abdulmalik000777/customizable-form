@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Save,
 } from "lucide-react";
+import { fetchWithAuth } from "../../../utils/api";
 import { cn } from "../../../utils/cn";
 import Slot from "../../../components/ui/slot";
 
@@ -64,7 +65,7 @@ export default function EditTemplate() {
 
   const fetchTemplate = async () => {
     try {
-      const response = await fetch(`/api/templates/${id}`);
+      const response = await fetchWithAuth(`/api/templates/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch template");
       }
@@ -74,6 +75,7 @@ export default function EditTemplate() {
       setDescription(data.description);
       setQuestions(data.questions);
     } catch (error) {
+      console.error("Error fetching template:", error);
       setError("Failed to load template");
     } finally {
       setIsLoading(false);
@@ -107,7 +109,7 @@ export default function EditTemplate() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`/api/templates/${id}`, {
+      const response = await fetchWithAuth(`/api/templates/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
