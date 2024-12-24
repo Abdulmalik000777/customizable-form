@@ -12,9 +12,11 @@ export function authMiddleware(
   handler: (req: AuthenticatedRequest, res: NextApiResponse) => Promise<void>
 ) {
   return async (req: AuthenticatedRequest, res: NextApiResponse) => {
+    console.log("Authenticating request...");
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("No token provided");
       return res
         .status(401)
         .json({ message: "Unauthorized: No token provided" });
@@ -27,6 +29,7 @@ export function authMiddleware(
         userId: string;
         email: string;
       };
+      console.log("Decoded token:", decoded);
       req.user = decoded;
       return handler(req, res);
     } catch (error) {

@@ -8,15 +8,15 @@ import {
 const prisma = new PrismaClient();
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  console.log("Handler function called");
-  console.log("Request method:", req.method);
-  console.log("User:", req.user);
   console.log("Fetching templates...");
   console.log("User:", req.user);
   if (req.method === "GET") {
     try {
+      if (!req.user || !req.user.userId) {
+        throw new Error("User not authenticated");
+      }
       const templates = await prisma.template.findMany({
-        where: { userId: req.user!.userId },
+        where: { userId: req.user.userId },
         select: {
           id: true,
           title: true,
@@ -34,7 +34,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       res.status(200).json(templates);
     } catch (error) {
       console.error("Error fetching templates:", error);
-      console.error("Detailed error:", error);
       res.status(500).json({
         error: "Error fetching templates",
         details: error instanceof Error ? error.message : String(error),

@@ -8,23 +8,16 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    // Test database connection
     await prisma.$connect();
-    console.log("Database connection successful");
-
-    // Test querying the Template table
-    const templateCount = await prisma.template.count();
-    console.log(`Number of templates: ${templateCount}`);
-
-    res.status(200).json({
-      message: "Database connection and query successful",
-      templateCount,
-    });
+    const userCount = await prisma.user.count();
+    res
+      .status(200)
+      .json({ message: "Database connection successful", userCount });
   } catch (error) {
-    console.error("Database error:", error);
+    console.error("Database connection error:", error);
     res.status(500).json({
-      error: "Database operation failed",
-      details: error instanceof Error ? error.message : "Unknown error",
+      error: "Database connection failed",
+      details: error instanceof Error ? error.message : String(error),
     });
   } finally {
     await prisma.$disconnect();

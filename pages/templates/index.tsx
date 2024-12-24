@@ -46,18 +46,12 @@ function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchTemplates() {
       try {
         const response = await fetchWithAuth("/api/templates");
-        if (!response.ok) {
-          if (response.status === 401) {
-            logout();
-            return;
-          }
-          throw new Error("Failed to fetch templates");
-        }
         const data = await response.json();
         setTemplates(data);
       } catch (error) {
@@ -67,13 +61,39 @@ function TemplatesPage() {
             ? error.message
             : "An unexpected error occurred"
         );
+        if (error instanceof Error && error.message.includes("Unauthorized")) {
+          logout();
+          router.push("/login");
+        }
       } finally {
         setLoading(false);
       }
     }
 
     fetchTemplates();
-  }, [logout]);
+  }, [logout, router]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <Alert variant="destructive" className="mb-8">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -95,20 +115,7 @@ function TemplatesPage() {
           </Button>
         </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-            <p className="text-gray-600 dark:text-gray-300">
-              Loading templates...
-            </p>
-          </div>
-        ) : error ? (
-          <Alert variant="destructive" className="mb-8">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : templates.length === 0 ? (
+        {templates.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="rounded-full bg-primary/10 p-4 mb-4">
