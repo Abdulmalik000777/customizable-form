@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
 import {
   authMiddleware,
@@ -11,12 +11,26 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     try {
       const { title, description, questions } = req.body;
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check if the user exists
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
 
       const template = await prisma.template.create({
         data: {
           title,
           description,
-          userId: req.user!.userId,
+          userId: userId,
           questions: {
             create: questions.map((q: any) => ({
               type: q.type,
