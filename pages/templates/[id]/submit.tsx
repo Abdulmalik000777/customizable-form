@@ -206,6 +206,20 @@ function SubmitFormPage() {
     );
   }
 
+  if (template.questions.length === 0) {
+    return (
+      <Layout>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No Questions</AlertTitle>
+          <AlertDescription>
+            This template does not have any questions.
+          </AlertDescription>
+        </Alert>
+      </Layout>
+    );
+  }
+
   const currentQuestion = template.questions[currentStep];
   const progress = ((currentStep + 1) / template.questions.length) * 100;
 
