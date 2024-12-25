@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "../../../contexts/auth-context";
 import Layout from "../../../components/layout";
 import {
   Card,
@@ -45,11 +44,18 @@ interface Template {
 }
 
 function SubmitFormPage() {
-  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const { id } = router.query;
+  const [template, setTemplate] = useState<Template | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  async function fetchTemplate() {
+  const fetchTemplate = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -70,26 +76,11 @@ function SubmitFormPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      console.log("User not authenticated, redirecting to login");
-      router.push("/login");
-    } else {
-      console.log("User is authenticated, fetching template");
-      fetchTemplate();
-    }
-  }, [isAuthenticated, router, fetchTemplate]);
-
-  const [template, setTemplate] = useState<Template | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+    fetchTemplate();
+  }, [fetchTemplate]);
 
   const handleInputChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));

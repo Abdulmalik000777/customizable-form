@@ -1,0 +1,106 @@
+{
+  "appName": "FormCraft",
+  "nav": {
+    "home": "Home",
+    "myForms": "My Forms",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "home": {
+    "welcome": "Welcome to FormCraft",
+    "description": "Create, manage, and share customizable forms with ease.",
+    "getStarted": "Get Started",
+    "exploreTemplates": "Explore Templates",
+    "toggleTheme": "Toggle Theme",
+    "keyFeatures": "Key Features",
+    "features": {
+      "customForms": {
+        "title": "Custom Forms",
+        "description": "Create forms tailored to your specific needs"
+      },
+      "templates": {
+        "title": "Templates",
+        "description": "Choose from a variety of pre-designed templates"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "Gain insights from form submissions"
+      },
+      "collaboration": {
+        "title": "Collaboration",
+        "description": "Work together with your team on forms"
+      }
+    },
+    "allRightsReserved": "All rights reserved"
+  },
+  "auth": {
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "namePlaceholder": "Full Name",
+    "loginTitle": "Log in to your account",
+    "registerTitle": "Create an account",
+    "loginButton": "Log in",
+    "registerButton": "Register",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "loginSuccess": "Logged in successfully",
+    "registerSuccess": "Account created successfully",
+    "loginError": "Failed to log in",
+    "registerError": "Failed to create account"
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Create and manage your form templates",
+    "createNew": "Create Template",
+    "loading": "Loading templates...",
+    "noTemplates": "No templates yet",
+    "createFirst": "Create your first template to get started",
+    "createTemplate": "Create Template",
+    "noDescription": "No description provided",
+    "view": "View Template",
+    "questionCount": "{{count}} questions",
+    "fetchError": "Failed to fetch templates",
+    "unexpectedError": "An unexpected error occurred"
+  },
+  "createTemplate": {
+    "title": "Create New Template",
+    "formTitle": "Form Title",
+    "description": "Description",
+    "addQuestion": "Add Question",
+    "questionTitle": "Question Title",
+    "questionDescription": "Question Description",
+    "required": "Required",
+    "removeQuestion": "Remove Question",
+    "createForm": "Create Form",
+    "creating": "Creating..."
+  },
+  "viewTemplate": {
+    "backToTemplates": "Back to Templates",
+    "description": "Description",
+    "questions": "Questions",
+    "editTemplate": "Edit Template",
+    "fillOutForm": "Fill Out Form",
+    "deleteTemplate": "Delete Template",
+    "deleteConfirm": "Are you sure you want to delete this template?",
+    "deleteSuccess": "Template deleted successfully",
+    "deleteError": "Failed to delete template"
+  },
+  "common": {
+    "error": "Error",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "submit": "Submit",
+    "success": "Success",
+    "somethingWentWrong": "Something went wrong"
+  },
+  "search": {
+    "placeholder": "Search templates...",
+    "results": "Search results for \"{{query}}\"",
+    "loading": "Searching...",
+    "noResults": "No results found"
+  }
+}

@@ -3,6 +3,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAuth } from "../contexts/auth-context";
 import { Button } from "./ui/button";
+import { LanguageSwitcher } from "./language-switcher";
+import { Search } from "./search";
+import { useTranslation } from "react-i18next";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +14,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isAuthenticated, logout } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation("common");
 
   const handleLogout = () => {
     logout();
@@ -23,28 +27,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <nav className="container mx-auto px-6 py-3">
           <div className="flex justify-between items-center">
             <Link href="/" className="text-lg font-semibold text-foreground">
-              FormCraft
+              {t("appName")}
             </Link>
-            <div className="space-x-4">
+            <Search />
+            <div className="space-x-4 flex items-center">
               {isAuthenticated ? (
                 <>
                   <Button variant="ghost" asChild>
-                    <Link href="/templates">Templates</Link>
+                    <Link href="/templates">{t("nav.myForms")}</Link>
                   </Button>
                   <Button variant="outline" onClick={handleLogout}>
-                    Logout
+                    {t("nav.logout")}
                   </Button>
                 </>
               ) : (
                 <>
                   <Button variant="ghost" asChild>
-                    <Link href="/login">Login</Link>
+                    <Link href="/login">{t("nav.login")}</Link>
                   </Button>
                   <Button variant="outline" asChild>
-                    <Link href="/register">Register</Link>
+                    <Link href="/register">{t("nav.register")}</Link>
                   </Button>
                 </>
               )}
+              <LanguageSwitcher />
             </div>
           </div>
         </nav>

@@ -1,0 +1,106 @@
+{
+  "appName": "FormCraft",
+  "nav": {
+    "home": "Bosh sahifa",
+    "myForms": "Mening shakllarim",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "logout": "Chiqish"
+  },
+  "home": {
+    "welcome": "FormCraft-ga xush kelibsiz",
+    "description": "Moslashtirilgan shakllarni osonlik bilan yarating, boshqaring va baham ko'ring.",
+    "getStarted": "Boshlash",
+    "exploreTemplates": "Shablonlarni ko'rish",
+    "toggleTheme": "Ko`rinish o'zgartirish",
+    "keyFeatures": "Asosiy xususiyatlar",
+    "features": {
+      "customForms": {
+        "title": "Maxsus shakllar",
+        "description": "O'zingizning ehtiyojlaringizga mos shakllar yarating"
+      },
+      "templates": {
+        "title": "Shablonlar",
+        "description": "Oldindan tayyorlangan shablonlar orasidan tanlang"
+      },
+      "analytics": {
+        "title": "Tahlillar",
+        "description": "Shakl topshirishlardan ma'lumotlar oling"
+      },
+      "collaboration": {
+        "title": "Hamkorlik",
+        "description": "Jamoangiz bilan birgalikda shakllarda ishlang"
+      }
+    },
+    "allRightsReserved": "Barcha huquqlar himoyalangan"
+  },
+  "auth": {
+    "emailPlaceholder": "Elektron pochta",
+    "passwordPlaceholder": "Parol",
+    "namePlaceholder": "To'liq ism",
+    "loginTitle": "Hisobingizga kiring",
+    "registerTitle": "Hisob yarating",
+    "loginButton": "Kirish",
+    "registerButton": "Ro'yxatdan o'tish",
+    "alreadyHaveAccount": "Hisobingiz bormi?",
+    "dontHaveAccount": "Hisobingiz yo'qmi?",
+    "loginSuccess": "Muvaffaqiyatli kirdingiz",
+    "registerSuccess": "Hisob muvaffaqiyatli yaratildi",
+    "loginError": "Kirishda xatolik yuz berdi",
+    "registerError": "Hisob yaratishda xatolik yuz berdi"
+  },
+  "templates": {
+    "title": "Shablonlar",
+    "subtitle": "Shakl shablonlarini yarating va boshqaring",
+    "createNew": "Shablon yaratish",
+    "loading": "Shablonlar yuklanmoqda...",
+    "noTemplates": "Hali shablonlar yo'q",
+    "createFirst": "Boshlash uchun birinchi shabloningizni yarating",
+    "createTemplate": "Shablon yaratish",
+    "noDescription": "Tavsif berilmagan",
+    "view": "Shablonni ko'rish",
+    "questionCount": "{{count}} ta savol",
+    "fetchError": "Shablonlarni yuklashda xatolik yuz berdi",
+    "unexpectedError": "Kutilmagan xatolik yuz berdi"
+  },
+  "createTemplate": {
+    "title": "Yangi shablon yaratish",
+    "formTitle": "Shakl sarlavhasi",
+    "description": "Tavsif",
+    "addQuestion": "Savol qo'shish",
+    "questionTitle": "Savol sarlavhasi",
+    "questionDescription": "Savol tavsifi",
+    "required": "Majburiy",
+    "removeQuestion": "Savolni olib tashlash",
+    "createForm": "Shaklni yaratish",
+    "creating": "Yaratilmoqda..."
+  },
+  "viewTemplate": {
+    "backToTemplates": "Shablonlarga qaytish",
+    "description": "Tavsif",
+    "questions": "Savollar",
+    "editTemplate": "Shablonni tahrirlash",
+    "fillOutForm": "Shaklni to'ldirish",
+    "deleteTemplate": "Shablonni o'chirish",
+    "deleteConfirm": "Haqiqatan ham bu shablonni o'chirishni xohlaysizmi?",
+    "deleteSuccess": "Shablon muvaffaqiyatli o'chirildi",
+    "deleteError": "Shablonni o'chirishda xatolik yuz berdi"
+  },
+  "common": {
+    "error": "Xatolik",
+    "loading": "Yuklanmoqda...",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "edit": "Tahrirlash",
+    "delete": "O'chirish",
+    "submit": "Yuborish",
+    "success": "Muvaffaqiyat",
+    "somethingWentWrong": "Nimadir noto'g'ri ketdi"
+  },
+  "search": {
+    "placeholder": "Shablonlarni qidirish...",
+    "results": "\"{{query}}\" uchun qidiruv natijalari",
+    "loading": "Qidirilmoqda...",
+    "noResults": "Natijalar topilmadi"
+  }
+}

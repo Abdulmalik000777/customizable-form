@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import Layout from "../components/layout";
 import { useAuth } from "../contexts/auth-context";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 // Dynamically import icons
 const FileText = dynamic(
@@ -50,28 +51,28 @@ const ClientOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 export default function Home() {
   const { theme, setTheme } = useTheme();
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation("common");
 
   const features = [
     {
       icon: FileText,
-      title: "Custom Forms",
-      description:
-        "Create fully customizable forms with various question types",
+      title: t("home.features.customForms.title"),
+      description: t("home.features.customForms.description"),
     },
     {
       icon: LayoutDashboard,
-      title: "Templates",
-      description: "Save and reuse form templates for quick access",
+      title: t("home.features.templates.title"),
+      description: t("home.features.templates.description"),
     },
     {
       icon: BarChart2,
-      title: "Analytics",
-      description: "View detailed analytics and responses visualization",
+      title: t("home.features.analytics.title"),
+      description: t("home.features.analytics.description"),
     },
     {
       icon: Users,
-      title: "Collaboration",
-      description: "Share forms and work together with your team",
+      title: t("home.features.collaboration.title"),
+      description: t("home.features.collaboration.description"),
     },
   ];
 
@@ -82,16 +83,17 @@ export default function Home() {
           <div className="container px-4 mx-auto">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl font-bold tracking-tight sm:text-6xl bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent animate-fade-in mb-8">
-                Welcome to FormCraft
+                {t("home.welcome")}
               </h1>
               <p className="text-lg leading-8 text-muted-foreground mb-12">
-                Create and manage customizable forms with ease. Build powerful
-                forms, collect responses, and analyze data all in one place.
+                {t("home.description")}
               </p>
               <div className="flex flex-col gap-4 items-center">
                 <Button asChild size="lg" className="w-full max-w-sm text-lg">
                   <Link href={isAuthenticated ? "/templates" : "/register"}>
-                    {isAuthenticated ? "Explore Templates" : "Get Started"}
+                    {isAuthenticated
+                      ? t("home.exploreTemplates")
+                      : t("home.getStarted")}
                   </Link>
                 </Button>
 
@@ -103,7 +105,7 @@ export default function Home() {
                       size="lg"
                       className="w-full max-w-sm text-lg"
                     >
-                      <Link href="/login">Login</Link>
+                      <Link href="/login">{t("nav.login")}</Link>
                     </Button>
                     <Button
                       asChild
@@ -111,7 +113,7 @@ export default function Home() {
                       size="lg"
                       className="w-full max-w-sm text-lg"
                     >
-                      <Link href="/register">Register</Link>
+                      <Link href="/register">{t("nav.register")}</Link>
                     </Button>
                   </>
                 )}
@@ -130,7 +132,7 @@ export default function Home() {
                     ) : (
                       <Moon className="h-5 w-5 mr-2" />
                     )}
-                    Toggle Theme
+                    {t("home.toggleTheme")}
                   </Button>
                 </ClientOnly>
               </div>
@@ -141,7 +143,7 @@ export default function Home() {
         <section className="py-24 bg-muted/30">
           <div className="container px-4 mx-auto">
             <h2 className="text-3xl font-bold text-center mb-16">
-              Key Features
+              {t("home.keyFeatures")}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature, index) => (
@@ -171,7 +173,8 @@ export default function Home() {
         <footer className="py-6 border-t border-primary/10 bg-muted/30 backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <p className="text-center text-muted-foreground">
-              © {new Date().getFullYear()} FormCraft. All rights reserved.
+              © {new Date().getFullYear()} {t("appName")}.{" "}
+              {t("home.allRightsReserved")}
             </p>
           </div>
         </footer>

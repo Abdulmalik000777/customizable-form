@@ -16,6 +16,7 @@ import { cn } from "../../utils/cn";
 import SlotComponent from "../../components/ui/slot";
 import { useAuth } from "../../contexts/auth-context";
 import { ProtectedRoute } from "../../components/protected-route";
+import { useTranslation } from "react-i18next";
 
 interface Template {
   id: string;
@@ -46,12 +47,19 @@ function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { logout } = useAuth();
-  const router = useRouter();
+  const { t } = useTranslation("common");
 
   useEffect(() => {
     async function fetchTemplates() {
       try {
         const response = await fetchWithAuth("/api/templates");
+        if (!response.ok) {
+          if (response.status === 401) {
+            logout();
+            return;
+          }
+          throw new Error(t("templates.fetchError"));
+        }
         const data = await response.json();
         setTemplates(data);
       } catch (error) {
@@ -59,41 +67,15 @@ function TemplatesPage() {
         setError(
           error instanceof Error
             ? error.message
-            : "An unexpected error occurred"
+            : t("templates.unexpectedError")
         );
-        if (error instanceof Error && error.message.includes("Unauthorized")) {
-          logout();
-          router.push("/login");
-        }
       } finally {
         setLoading(false);
       }
     }
 
     fetchTemplates();
-  }, [logout, router]);
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout>
-        <Alert variant="destructive" className="mb-8">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </Layout>
-    );
-  }
+  }, [logout, t]);
 
   return (
     <Layout>
@@ -101,36 +83,49 @@ function TemplatesPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-              Templates
+              {t("templates.title")}
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Create and manage your form templates
+              {t("templates.subtitle")}
             </p>
           </div>
           <Button asChild className="h-10">
             <Link href="/templates/create">
               <Plus className="w-5 h-5 mr-2" />
-              Create Template
+              {t("templates.createNew")}
             </Link>
           </Button>
         </div>
 
-        {templates.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+            <p className="text-gray-600 dark:text-gray-300">
+              {t("templates.loading")}
+            </p>
+          </div>
+        ) : error ? (
+          <Alert variant="destructive" className="mb-8">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{t("common.error")}</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : templates.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="rounded-full bg-primary/10 p-4 mb-4">
                 <Plus className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-center">
-                No templates yet
+                {t("templates.noTemplates")}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-center mb-6">
-                Create your first template to get started
+                {t("templates.createFirst")}
               </p>
               <Button asChild>
                 <Link href="/templates/create">
                   <Plus className="w-5 h-5 mr-2" />
-                  Create Template
+                  {t("templates.createTemplate")}
                 </Link>
               </Button>
             </CardContent>
@@ -147,16 +142,18 @@ function TemplatesPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                    {template.description || "No description provided"}
+                    {template.description || t("templates.noDescription")}
                   </p>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       {new Date(template.createdAt).toLocaleDateString()} •{" "}
-                      {template._count.questions} questions
+                      {t("templates.questionCount", {
+                        count: template._count.questions,
+                      })}
                     </span>
                     <Button variant="outline" asChild>
                       <Link href={`/templates/${template.id}`}>
-                        View Template
+                        {t("templates.view")}
                       </Link>
                     </Button>
                   </div>
