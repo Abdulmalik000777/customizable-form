@@ -39,6 +39,8 @@ async function main() {
             title: "How would you rate our service?",
             description: "On a scale of 1-10, with 10 being the best",
             required: true,
+            minValue: 1,
+            maxValue: 10,
           },
         ],
       },

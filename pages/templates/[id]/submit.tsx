@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useAuth } from "../../../contexts/auth-context";
 import Layout from "../../../components/layout";
 import {
   Card,
@@ -44,8 +45,43 @@ interface Template {
 }
 
 function SubmitFormPage() {
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const { id } = router.query;
+
+  async function fetchTemplate() {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const response = await fetchWithAuth(`/api/templates/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch template");
+      }
+      const data = await response.json();
+      setTemplate(data);
+      setAnswers(
+        Object.fromEntries(data.questions.map((q: Question) => [q.id, ""]))
+      );
+    } catch (error) {
+      console.error("Error fetching template:", error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      console.log("User not authenticated, redirecting to login");
+      router.push("/login");
+    } else {
+      console.log("User is authenticated, fetching template");
+      fetchTemplate();
+    }
+  }, [isAuthenticated, router, fetchTemplate]);
+
   const [template, setTemplate] = useState<Template | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,34 +90,6 @@ function SubmitFormPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-
-  useEffect(() => {
-    async function fetchTemplate() {
-      if (!id) return;
-      try {
-        const response = await fetchWithAuth(`/api/templates/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch template");
-        }
-        const data = await response.json();
-        setTemplate(data);
-        setAnswers(
-          Object.fromEntries(data.questions.map((q: Question) => [q.id, ""]))
-        );
-      } catch (error) {
-        console.error("Error fetching template:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred"
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTemplate();
-  }, [id]);
 
   const handleInputChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
