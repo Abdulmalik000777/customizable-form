@@ -17,6 +17,15 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
+      // Check if the user exists
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
       const template = await prisma.template.create({
         data: {
           title,
@@ -28,11 +37,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
               title: q.title,
               description: q.description,
               required: q.required,
-              minLength: q.minLength,
-              maxLength: q.maxLength,
-              minValue: q.minValue,
-              maxValue: q.maxValue,
-              regex: q.regex,
             })),
           },
         },
@@ -54,4 +58,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default authMiddleware(handler);
+export default function (req: AuthenticatedRequest, res: NextApiResponse) {
+  return authMiddleware(req, res).then(() => handler(req, res));
+}
