@@ -12,7 +12,7 @@
     "description": "Moslashtirilgan shakllarni osonlik bilan yarating, boshqaring va baham ko'ring.",
     "getStarted": "Boshlash",
     "exploreTemplates": "Shablonlarni ko'rish",
-    "toggleTheme": "Ko`rinish o'zgartirish",
+    "toggleTheme": "Mavzuni o'zgartirish",
     "keyFeatures": "Asosiy xususiyatlar",
     "features": {
       "customForms": {
@@ -29,7 +29,7 @@
       },
       "collaboration": {
         "title": "Hamkorlik",
-        "description": "Jamoangiz bilan birgalikda shakllarda ishlang"
+        "description": "Jamoangiz bilan birgalikda ishlang"
       }
     },
     "allRightsReserved": "Barcha huquqlar himoyalangan"
@@ -51,11 +51,11 @@
   },
   "templates": {
     "title": "Shablonlar",
-    "subtitle": "Shakl shablonlarini yarating va boshqaring",
+    "subtitle": "Shakl shablonlaringizni yarating va boshqaring",
     "createNew": "Shablon yaratish",
     "loading": "Shablonlar yuklanmoqda...",
     "noTemplates": "Hali shablonlar yo'q",
-    "createFirst": "Boshlash uchun birinchi shabloningizni yarating",
+    "createFirst": "Boshlash uchun birinchi shablonni yarating",
     "createTemplate": "Shablon yaratish",
     "noDescription": "Tavsif berilmagan",
     "view": "Shablonni ko'rish",
@@ -72,7 +72,7 @@
     "questionDescription": "Savol tavsifi",
     "required": "Majburiy",
     "removeQuestion": "Savolni olib tashlash",
-    "createForm": "Shaklni yaratish",
+    "createForm": "Shakl yaratish",
     "creating": "Yaratilmoqda..."
   },
   "viewTemplate": {
@@ -101,6 +101,7 @@
     "placeholder": "Shablonlarni qidirish...",
     "results": "\"{{query}}\" uchun qidiruv natijalari",
     "loading": "Qidirilmoqda...",
-    "noResults": "Natijalar topilmadi"
+    "noResults": "Natijalar topilmadi",
+    "tryDifferentQuery": "Boshqa so'rov bilan urinib ko'ring"
   }
 }

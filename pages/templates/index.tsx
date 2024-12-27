@@ -8,12 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { ButtonProps, buttonVariants } from "../../components/ui/button";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { Plus, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { fetchWithAuth } from "../../utils/api";
-import { cn } from "../../utils/cn";
-import SlotComponent from "../../components/ui/slot";
 import { useAuth } from "../../contexts/auth-context";
 import { ProtectedRoute } from "../../components/protected-route";
 import { useTranslation } from "react-i18next";
@@ -28,26 +27,15 @@ interface Template {
   };
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? SlotComponent : "button";
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    );
-  }
-);
-Button.displayName = "Button";
-
 function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { logout } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
   const { t } = useTranslation("common");
+
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchTemplates() {
@@ -58,7 +46,7 @@ function TemplatesPage() {
             logout();
             return;
           }
-          throw new Error(t("templates.fetchError"));
+          throw new Error("Failed to fetch templates");
         }
         const data = await response.json();
         setTemplates(data);
@@ -67,7 +55,7 @@ function TemplatesPage() {
         setError(
           error instanceof Error
             ? error.message
-            : t("templates.unexpectedError")
+            : "An unexpected error occurred"
         );
       } finally {
         setLoading(false);
@@ -75,7 +63,26 @@ function TemplatesPage() {
     }
 
     fetchTemplates();
-  }, [logout, t]);
+  }, [logout]);
+
+  const filteredTemplates = templates.filter(
+    (template) =>
+      template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <p className="text-gray-600 dark:text-gray-300">
+            {t("templates.loading")}
+          </p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -97,42 +104,51 @@ function TemplatesPage() {
           </Button>
         </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-            <p className="text-gray-600 dark:text-gray-300">
-              {t("templates.loading")}
-            </p>
-          </div>
-        ) : error ? (
+        <div className="mb-6">
+          <Input
+            type="text"
+            placeholder={t("search.placeholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-md"
+          />
+        </div>
+
+        {error ? (
           <Alert variant="destructive" className="mb-8">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t("common.error")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        ) : templates.length === 0 ? (
+        ) : filteredTemplates.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="rounded-full bg-primary/10 p-4 mb-4">
                 <Plus className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-center">
-                {t("templates.noTemplates")}
+                {searchQuery
+                  ? t("search.noResults")
+                  : t("templates.noTemplates")}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-center mb-6">
-                {t("templates.createFirst")}
+                {searchQuery
+                  ? t("search.tryDifferentQuery")
+                  : t("templates.createFirst")}
               </p>
-              <Button asChild>
-                <Link href="/templates/create">
-                  <Plus className="w-5 h-5 mr-2" />
-                  {t("templates.createTemplate")}
-                </Link>
-              </Button>
+              {!searchQuery && (
+                <Button asChild>
+                  <Link href="/templates/create">
+                    <Plus className="w-5 h-5 mr-2" />
+                    {t("templates.createTemplate")}
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.map((template) => (
+            {filteredTemplates.map((template) => (
               <Card
                 key={template.id}
                 className="hover:shadow-lg transition-shadow"
