@@ -8,24 +8,10 @@ import dynamic from "next/dynamic";
 import Layout from "../components/layout";
 import { useAuth } from "../contexts/auth-context";
 import { Button } from "@/components/ui/button";
+import { FileText, LayoutDashboard, BarChart2, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 // Dynamically import icons
-const FileText = dynamic(
-  () => import("lucide-react").then((mod) => mod.FileText),
-  { ssr: false }
-);
-const LayoutDashboard = dynamic(
-  () => import("lucide-react").then((mod) => mod.LayoutDashboard),
-  { ssr: false }
-);
-const BarChart2 = dynamic(
-  () => import("lucide-react").then((mod) => mod.BarChart2),
-  { ssr: false }
-);
-const Users = dynamic(() => import("lucide-react").then((mod) => mod.Users), {
-  ssr: false,
-});
 const Sun = dynamic(() => import("lucide-react").then((mod) => mod.Sun), {
   ssr: false,
 });
@@ -53,29 +39,6 @@ export default function Home() {
   const { isAuthenticated } = useAuth();
   const { t } = useTranslation("common");
 
-  const features = [
-    {
-      icon: FileText,
-      title: t("home.features.customForms.title"),
-      description: t("home.features.customForms.description"),
-    },
-    {
-      icon: LayoutDashboard,
-      title: t("home.features.templates.title"),
-      description: t("home.features.templates.description"),
-    },
-    {
-      icon: BarChart2,
-      title: t("home.features.analytics.title"),
-      description: t("home.features.analytics.description"),
-    },
-    {
-      icon: Users,
-      title: t("home.features.collaboration.title"),
-      description: t("home.features.collaboration.description"),
-    },
-  ];
-
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -96,45 +59,16 @@ export default function Home() {
                       : t("home.getStarted")}
                   </Link>
                 </Button>
-
                 {!isAuthenticated && (
-                  <>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="lg"
-                      className="w-full max-w-sm text-lg"
-                    >
-                      <Link href="/login">{t("nav.login")}</Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="secondary"
-                      size="lg"
-                      className="w-full max-w-sm text-lg"
-                    >
-                      <Link href="/register">{t("nav.register")}</Link>
-                    </Button>
-                  </>
-                )}
-
-                <ClientOnly>
                   <Button
-                    variant="ghost"
+                    asChild
+                    variant="outline"
                     size="lg"
-                    onClick={() =>
-                      setTheme(theme === "dark" ? "light" : "dark")
-                    }
                     className="w-full max-w-sm text-lg"
                   >
-                    {theme === "dark" ? (
-                      <Sun className="h-5 w-5 mr-2" />
-                    ) : (
-                      <Moon className="h-5 w-5 mr-2" />
-                    )}
-                    {t("home.toggleTheme")}
+                    <Link href="/login">{t("nav.login")}</Link>
                   </Button>
-                </ClientOnly>
+                )}
               </div>
             </div>
           </div>
@@ -146,7 +80,12 @@ export default function Home() {
               {t("home.keyFeatures")}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, index) => (
+              {[
+                { key: "customForms", icon: FileText },
+                { key: "templates", icon: LayoutDashboard },
+                { key: "analytics", icon: BarChart2 },
+                { key: "collaboration", icon: Users },
+              ].map((feature, index) => (
                 <Card
                   key={index}
                   className="border border-primary/10 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:scale-105 transition-all duration-300"
@@ -158,10 +97,10 @@ export default function Home() {
                       </div>
                     </ClientOnly>
                     <h3 className="text-xl font-semibold mb-4">
-                      {feature.title}
+                      {t(`home.features.${feature.key}.title`)}
                     </h3>
                     <p className="text-muted-foreground">
-                      {feature.description}
+                      {t(`home.features.${feature.key}.description`)}
                     </p>
                   </CardContent>
                 </Card>
@@ -173,7 +112,7 @@ export default function Home() {
         <footer className="py-6 border-t border-primary/10 bg-muted/30 backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <p className="text-center text-muted-foreground">
-              © {new Date().getFullYear()} {t("appName")}.{" "}
+              © {new Date().getFullYear()} FormCraft.{" "}
               {t("home.allRightsReserved")}
             </p>
           </div>

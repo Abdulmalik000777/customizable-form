@@ -10,16 +10,17 @@ i18n.use(initReactI18next).init({
     en: { common: enCommon },
     uz: { common: uzCommon },
   },
+  lng: "en", // default language
   fallbackLng: "en",
   interpolation: {
     escapeValue: false,
   },
 });
 
-type LanguageContextType = {
+interface LanguageContextType {
   language: string;
   setLanguage: (lang: string) => void;
-};
+}
 
 const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined
@@ -29,22 +30,23 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const router = useRouter();
-  const [language, setLanguage] = useState(router.locale || "en");
+  const [language, setLanguage] = useState("en");
 
   useEffect(() => {
-    i18n.changeLanguage(language);
-    document.documentElement.lang = language;
-  }, [language]);
+    const storedLanguage = localStorage.getItem("language") || "en";
+    setLanguage(storedLanguage);
+    i18n.changeLanguage(storedLanguage);
+  }, []);
 
-  const handleSetLanguage = (lang: string) => {
+  const changeLanguage = (lang: string) => {
     setLanguage(lang);
+    i18n.changeLanguage(lang);
+    localStorage.setItem("language", lang);
     router.push(router.pathname, router.asPath, { locale: lang });
   };
 
   return (
-    <LanguageContext.Provider
-      value={{ language, setLanguage: handleSetLanguage }}
-    >
+    <LanguageContext.Provider value={{ language, setLanguage: changeLanguage }}>
       {children}
     </LanguageContext.Provider>
   );
