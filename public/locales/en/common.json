@@ -101,6 +101,19 @@
     "placeholder": "Search templates...",
     "results": "Search results for \"{{query}}\"",
     "loading": "Searching...",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "tryDifferentQuery": "Try a different search query"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "recentForms": "Recent Forms",
+    "noRecentForms": "No recent forms",
+    "viewAllForms": "View All Forms",
+    "quickActions": "Quick Actions",
+    "createNewForm": "Create New Form",
+    "manageTemplates": "Manage Templates",
+    "stats": "Stats",
+    "totalForms": "Total Forms",
+    "totalSubmissions": "Total Submissions"
   }
 }

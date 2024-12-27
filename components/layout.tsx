@@ -6,6 +6,7 @@ import { useLanguage } from "../contexts/language-context";
 import { Button } from "./ui/button";
 import { Globe, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes"; // Import useTheme
+import { useTranslation } from "react-i18next"; // Import useTranslation
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,9 +18,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const router = useRouter();
   const { theme, setTheme } = useTheme(); // Replace local state with useTheme
   const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation("common"); // Add translation hook
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const storedLang = localStorage.getItem("language") || "en";
+    setLanguage(storedLang);
   }, []);
 
   //Remove: const [theme, setTheme] = React.useState('dark');
@@ -32,6 +39,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const toggleLanguage = () => {
     const newLang = language === "en" ? "uz" : "en";
     setLanguage(newLang);
+    // Force immediate re-render of translated content
+    document.documentElement.lang = newLang;
+    window.dispatchEvent(new Event("languagechange"));
   };
 
   return (
@@ -42,16 +52,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <nav className="container mx-auto px-6 py-3">
           <div className="flex justify-between items-center">
             <Link href="/" className="text-lg font-semibold text-foreground">
-              FormCraft
+              {t("appName")}
             </Link>
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
                 <>
                   <Button variant="ghost" asChild>
-                    <Link href="/dashboard">Dashboard</Link>
+                    <Link href="/dashboard">{t("nav.home")}</Link>
                   </Button>
                   <Button variant="ghost" asChild>
-                    <Link href="/templates">Templates</Link>
+                    <Link href="/templates">{t("nav.myForms")}</Link>
                   </Button>
                   <Button
                     variant="ghost"
@@ -71,7 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {language.toUpperCase()}
                   </Button>
                   <Button variant="outline" onClick={handleLogout}>
-                    Logout
+                    {t("nav.logout")}
                   </Button>
                 </>
               ) : (
@@ -94,10 +104,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {language.toUpperCase()}
                   </Button>
                   <Button variant="ghost" asChild>
-                    <Link href="/login">Login</Link>
+                    <Link href="/login">{t("nav.login")}</Link>
                   </Button>
                   <Button variant="outline" asChild>
-                    <Link href="/register">Register</Link>
+                    <Link href="/register">{t("nav.register")}</Link>
                   </Button>
                 </>
               )}

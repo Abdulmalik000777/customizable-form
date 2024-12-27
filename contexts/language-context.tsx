@@ -12,6 +12,8 @@ i18n.use(initReactI18next).init({
   },
   lng: "en", // default language
   fallbackLng: "en",
+  defaultNS: "common",
+  ns: ["common"],
   interpolation: {
     escapeValue: false,
   },
@@ -38,11 +40,29 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     i18n.changeLanguage(storedLanguage);
   }, []);
 
-  const changeLanguage = (lang: string) => {
-    setLanguage(lang);
-    i18n.changeLanguage(lang);
-    localStorage.setItem("language", lang);
-    router.push(router.pathname, router.asPath, { locale: lang });
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      const currentLang = i18n.language;
+      document.documentElement.lang = currentLang;
+      setLanguage(currentLang);
+    };
+
+    window.addEventListener("languagechange", handleLanguageChange);
+    return () =>
+      window.removeEventListener("languagechange", handleLanguageChange);
+  }, []);
+
+  const changeLanguage = async (lang: string) => {
+    try {
+      await i18n.changeLanguage(lang);
+      setLanguage(lang);
+      localStorage.setItem("language", lang);
+      // Force re-render by updating document language and triggering a state update
+      document.documentElement.lang = lang;
+      window.dispatchEvent(new Event("languagechange"));
+    } catch (error) {
+      console.error("Error changing language:", error);
+    }
   };
 
   return (

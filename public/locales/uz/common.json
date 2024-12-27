@@ -103,5 +103,17 @@
     "loading": "Qidirilmoqda...",
     "noResults": "Natijalar topilmadi",
     "tryDifferentQuery": "Boshqa so'rov bilan urinib ko'ring"
+  },
+  "dashboard": {
+    "title": "Boshqaruv paneli",
+    "recentForms": "So'nggi shakllar",
+    "noRecentForms": "So'nggi shakllar yo'q",
+    "viewAllForms": "Barcha shakllarni ko'rish",
+    "quickActions": "Tezkor harakatlar",
+    "createNewForm": "Yangi shakl yaratish",
+    "manageTemplates": "Shablonlarni boshqarish",
+    "stats": "Statistika",
+    "totalForms": "Jami shakllar",
+    "totalSubmissions": "Jami topshirishlar"
   }
 }
