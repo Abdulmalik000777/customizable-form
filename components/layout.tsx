@@ -48,10 +48,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {isAuthenticated ? (
                 <>
                   <Button variant="ghost" asChild>
-                    <Link href="/templates">Templates</Link>
+                    <Link href="/dashboard">Dashboard</Link>
                   </Button>
                   <Button variant="ghost" asChild>
-                    <Link href="/templates">Dashboard</Link>
+                    <Link href="/templates">Templates</Link>
                   </Button>
                   <Button
                     variant="ghost"
