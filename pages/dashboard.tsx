@@ -1,13 +1,39 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { fetchWithAuth } from "../utils/api";
+
+interface DashboardStats {
+  totalForms: number;
+  totalSubmissions: number;
+}
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
+  const [stats, setStats] = useState<DashboardStats>({
+    totalForms: 0,
+    totalSubmissions: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetchWithAuth("/api/templates/stats");
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <Layout>
@@ -48,8 +74,10 @@ export default function Dashboard() {
               <CardTitle>{t("dashboard.stats")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{t("dashboard.totalForms")}: 0</p>
-              <p>{t("dashboard.totalSubmissions")}: 0</p>
+              <p>{`${t("dashboard.totalForms")}: ${stats.totalForms}`}</p>
+              <p>{`${t("dashboard.totalSubmissions")}: ${
+                stats.totalSubmissions
+              }`}</p>
             </CardContent>
           </Card>
         </div>

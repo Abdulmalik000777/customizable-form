@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../../lib/prisma";
 
 export default async function handler(
   req: NextApiRequest,
@@ -21,15 +19,13 @@ export default async function handler(
       // If successful, return the users
       res
         .status(200)
-        .json({ message: "Database connection successful", users });
+        .json({ message: "Supabase connection successful", users });
     } catch (error) {
-      console.error("Database connection error:", error);
+      console.error("Supabase connection error:", error);
       res.status(500).json({
-        error: "Failed to connect to the database",
+        error: "Failed to connect to Supabase",
         details: error instanceof Error ? error.message : String(error),
       });
-    } finally {
-      await prisma.$disconnect();
     }
   } else {
     res.setHeader("Allow", ["GET"]);

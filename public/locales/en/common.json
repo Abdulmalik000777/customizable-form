@@ -1,7 +1,7 @@
 {
   "appName": "FormCraft",
   "nav": {
-    "home": "Home",
+    "dashboard": "Dashboard",
     "myForms": "My Forms",
     "login": "Login",
     "register": "Register",

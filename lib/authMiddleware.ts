@@ -9,19 +9,26 @@ export interface AuthenticatedRequest extends NextApiRequest {
 }
 
 export function authMiddleware(
-  handler: (req: AuthenticatedRequest, res: NextApiResponse) => Promise<void>
-) {
-  return async (req: AuthenticatedRequest, res: NextApiResponse) => {
-    const authHeader = req.headers.authorization;
+  req: AuthenticatedRequest,
+  res: NextApiResponse
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const authHeader =
+      req.headers["authorization"] || req.headers["Authorization"];
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("No token provided");
-      return res
-        .status(401)
-        .json({ message: "Unauthorized: No token provided" });
+    if (
+      !authHeader ||
+      (typeof authHeader === "string" && !authHeader.startsWith("Bearer "))
+    ) {
+      res.status(401).json({ message: "Unauthorized: No token provided" });
+      reject(new Error("Unauthorized: No token provided"));
+      return;
     }
 
-    const token = authHeader.split(" ")[1];
+    const token =
+      typeof authHeader === "string"
+        ? authHeader.split(" ")[1]
+        : authHeader[0].split(" ")[1];
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
@@ -29,10 +36,10 @@ export function authMiddleware(
         email: string;
       };
       req.user = decoded;
-      return handler(req, res);
+      resolve();
     } catch (error) {
-      console.error("Auth error:", error);
-      return res.status(401).json({ message: "Unauthorized: Invalid token" });
+      res.status(401).json({ message: "Unauthorized: Invalid token" });
+      reject(new Error("Unauthorized: Invalid token"));
     }
-  };
+  });
 }

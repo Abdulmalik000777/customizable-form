@@ -47,4 +47,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default authMiddleware(handler);
+export default function (req: AuthenticatedRequest, res: NextApiResponse) {
+  return authMiddleware(req, res).then(() => handler(req, res));
+}

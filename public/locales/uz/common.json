@@ -2,6 +2,7 @@
   "appName": "FormCraft",
   "nav": {
     "home": "Bosh sahifa",
+    "dashboard": "Boshqaruv paneli",
     "myForms": "Mening shakllarim",
     "login": "Kirish",
     "register": "Ro'yxatdan o'tish",

@@ -58,7 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {isAuthenticated ? (
                 <>
                   <Button variant="ghost" asChild>
-                    <Link href="/dashboard">{t("nav.home")}</Link>
+                    <Link href="/dashboard">{t("nav.dashboard")}</Link>
                   </Button>
                   <Button variant="ghost" asChild>
                     <Link href="/templates">{t("nav.myForms")}</Link>
