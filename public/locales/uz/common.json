@@ -62,7 +62,10 @@
     "view": "Shablonni ko'rish",
     "questionCount": "{{count}} ta savol",
     "fetchError": "Shablonlarni yuklashda xatolik yuz berdi",
-    "unexpectedError": "Kutilmagan xatolik yuz berdi"
+    "unexpectedError": "Kutilmagan xatolik yuz berdi",
+    "delete": "O'chirish",
+    "deleteConfirmTitle": "Ishonchingiz komilmi?",
+    "deleteConfirmDescription": "Bu amalni qaytarib bo'lmaydi. Bu shablon va uning barcha ma'lumotlari butunlay o'chiriladi."
   },
   "createTemplate": {
     "title": "Yangi shablon yaratish",

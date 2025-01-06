@@ -16,6 +16,17 @@ import { fetchWithAuth } from "../../utils/api";
 import { useAuth } from "../../contexts/auth-context";
 import { ProtectedRoute } from "../../components/protected-route";
 import { useTranslation } from "react-i18next";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Template {
   id: string;
@@ -37,31 +48,29 @@ function TemplatesPage() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    async function fetchTemplates() {
-      try {
-        const response = await fetchWithAuth("/api/templates");
-        if (!response.ok) {
-          if (response.status === 401) {
-            logout();
-            return;
-          }
-          throw new Error("Failed to fetch templates");
+  const fetchTemplates = async () => {
+    try {
+      const response = await fetchWithAuth("/api/templates");
+      if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          return;
         }
-        const data = await response.json();
-        setTemplates(data);
-      } catch (error) {
-        console.error("Error fetching templates:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred"
-        );
-      } finally {
-        setLoading(false);
+        throw new Error("Failed to fetch templates");
       }
+      const data = await response.json();
+      setTemplates(data);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchTemplates();
   }, [logout]);
 
@@ -70,6 +79,26 @@ function TemplatesPage() {
       template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const deleteTemplate = async (id: string) => {
+    try {
+      const response = await fetchWithAuth(`/api/templates/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete template");
+      }
+
+      // Refresh the templates list
+      fetchTemplates();
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    }
+  };
 
   if (loading) {
     return (
@@ -167,11 +196,33 @@ function TemplatesPage() {
                         count: template._count.questions,
                       })}
                     </span>
-                    <Button variant="outline" asChild>
-                      <Link href={`/templates/${template.id}`}>
-                        {t("templates.view")}
-                      </Link>
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          {t("templates.delete")}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            {t("templates.deleteConfirmTitle")}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t("templates.deleteConfirmDescription")}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>
+                            {t("common.cancel")}
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteTemplate(template.id)}
+                          >
+                            {t("common.delete")}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>

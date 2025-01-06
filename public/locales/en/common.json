@@ -61,7 +61,10 @@
     "view": "View Template",
     "questionCount": "{{count}} questions",
     "fetchError": "Failed to fetch templates",
-    "unexpectedError": "An unexpected error occurred"
+    "unexpectedError": "An unexpected error occurred",
+    "delete": "Delete",
+    "deleteConfirmTitle": "Are you sure?",
+    "deleteConfirmDescription": "This action cannot be undone. This will permanently delete the template and all its data."
   },
   "createTemplate": {
     "title": "Create New Template",

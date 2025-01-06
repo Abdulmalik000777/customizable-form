@@ -63,6 +63,10 @@ export default function CreateTemplate() {
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
+  const deleteQuestion = (id: string) => {
+    setQuestions(questions.filter((q) => q.id !== id));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -135,50 +139,55 @@ export default function CreateTemplate() {
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Questions</h2>
                 {questions.map((question) => (
-                  <Card key={question.id} className="p-4">
-                    <div className="space-y-4">
-                      <Input
-                        value={question.title}
-                        onChange={(e) =>
-                          updateQuestion(question.id, { title: e.target.value })
-                        }
-                        placeholder="Question Title"
-                        className="mb-2"
-                      />
-                      <Textarea
-                        value={question.description}
-                        onChange={(e) =>
-                          updateQuestion(question.id, {
-                            description: e.target.value,
-                          })
-                        }
-                        placeholder="Question Description"
-                        rows={2}
-                      />
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={`required-${question.id}`}
-                          checked={question.required}
+                  <Card key={question.id} className="mb-4">
+                    <CardContent>
+                      <div className="space-y-4">
+                        <Input
+                          value={question.title}
                           onChange={(e) =>
                             updateQuestion(question.id, {
-                              required: e.target.checked,
+                              title: e.target.value,
                             })
                           }
-                          className="rounded border-gray-300"
+                          placeholder="Question Title"
+                          className="mb-2"
                         />
-                        <Label htmlFor={`required-${question.id}`}>
-                          Required
-                        </Label>
+                        <Textarea
+                          value={question.description}
+                          onChange={(e) =>
+                            updateQuestion(question.id, {
+                              description: e.target.value,
+                            })
+                          }
+                          placeholder="Question Description"
+                          rows={2}
+                        />
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`required-${question.id}`}
+                            checked={question.required}
+                            onChange={(e) =>
+                              updateQuestion(question.id, {
+                                required: e.target.checked,
+                              })
+                            }
+                            className="rounded border-gray-300"
+                          />
+                          <Label htmlFor={`required-${question.id}`}>
+                            Required
+                          </Label>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteQuestion(question.id)}
+                        >
+                          Remove Question
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeQuestion(question.id)}
-                      >
-                        Remove Question
-                      </Button>
-                    </div>
+                    </CardContent>
                   </Card>
                 ))}
 

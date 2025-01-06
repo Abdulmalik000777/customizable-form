@@ -7,7 +7,6 @@ import { Label } from "../components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/auth-context";
-import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,7 +14,6 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { login } = useAuth();
-  const { t } = useTranslation("common");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +29,7 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || t("auth.loginError"));
+        throw new Error(data.message || "Login failed");
       }
 
       const { token } = data;
@@ -39,34 +37,38 @@ export default function Login() {
       router.push("/templates");
     } catch (error) {
       console.error("Login error:", error);
-      setError(error instanceof Error ? error.message : t("auth.loginError"));
+      setError(
+        error instanceof Error ? error.message : "Invalid email or password"
+      );
     }
   };
 
   return (
     <Layout>
       <div className="max-w-md mx-auto mt-8">
-        <h1 className="text-2xl font-bold mb-4">{t("auth.loginTitle")}</h1>
+        <h1 className="text-2xl font-bold mb-4">Login</h1>
         {router.query.registered === "true" && (
           <Alert
             variant="default"
             className="mb-4 bg-green-100 border-green-400 text-green-700"
           >
             <AlertCircle className="h-4 w-4 text-green-400" />
-            <AlertTitle>{t("common.success")}</AlertTitle>
-            <AlertDescription>{t("auth.registerSuccess")}</AlertDescription>
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>
+              Registration successful. Please log in with your new account.
+            </AlertDescription>
           </Alert>
         )}
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t("common.error")}</AlertTitle>
+            <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email">{t("auth.emailPlaceholder")}</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
@@ -77,7 +79,7 @@ export default function Login() {
             />
           </div>
           <div>
-            <Label htmlFor="password">{t("auth.passwordPlaceholder")}</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -88,7 +90,7 @@ export default function Login() {
             />
           </div>
           <Button type="submit" className="w-full">
-            {t("auth.loginButton")}
+            Login
           </Button>
         </form>
       </div>
