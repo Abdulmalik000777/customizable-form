@@ -196,33 +196,40 @@ function TemplatesPage() {
                         count: template._count.questions,
                       })}
                     </span>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          {t("templates.delete")}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t("templates.deleteConfirmTitle")}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t("templates.deleteConfirmDescription")}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>
-                            {t("common.cancel")}
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteTemplate(template.id)}
-                          >
-                            {t("common.delete")}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="space-x-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/templates/${template.id}`}>
+                          View Questions
+                        </Link>
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            {t("templates.delete")}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {t("templates.deleteConfirmTitle")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t("templates.deleteConfirmDescription")}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>
+                              {t("common.cancel")}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteTemplate(template.id)}
+                            >
+                              {t("common.delete")}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

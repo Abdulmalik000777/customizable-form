@@ -11,9 +11,18 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     "Content-Type": "application/json",
   };
 
-  // If the URL already has query parameters, use '&' instead of '?'
-  const separator = url.includes("?") ? "&" : "?";
-  const finalUrl = `${url}${separator}_t=${Date.now()}`;
+  try {
+    const response = await fetch(url, { ...options, headers });
 
-  return fetch(finalUrl, { ...options, headers });
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+      throw new Error("Authentication expired");
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Layout from "../../../components/layout";
 import {
@@ -55,32 +55,39 @@ function SubmitFormPage() {
   const [success, setSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const fetchTemplate = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const response = await fetchWithAuth(`/api/templates/${id}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch template");
-      }
-      const data = await response.json();
-      setTemplate(data);
-      setAnswers(
-        Object.fromEntries(data.questions.map((q: Question) => [q.id, ""]))
-      );
-    } catch (error) {
-      console.error("Error fetching template:", error);
-      setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
   useEffect(() => {
+    async function fetchTemplate() {
+      if (!id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetchWithAuth(`/api/templates/${id}`);
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push("/login");
+            return;
+          }
+          throw new Error("Failed to fetch template");
+        }
+        const data = await response.json();
+        setTemplate(data);
+        setAnswers(
+          Object.fromEntries(data.questions.map((q: Question) => [q.id, ""]))
+        );
+      } catch (error) {
+        console.error("Error fetching template:", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred"
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchTemplate();
-  }, [fetchTemplate]);
+  }, [id]);
 
   const handleInputChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -153,6 +160,10 @@ function SubmitFormPage() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to submit form");
       }
