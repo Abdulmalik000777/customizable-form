@@ -14,9 +14,7 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
     // Add base URL for production
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-    const finalUrl = `${baseUrl}${url}${
-      url.includes("?") ? "&" : "?"
-    }_t=${Date.now()}`;
+    const finalUrl = `${baseUrl}${url}`;
 
     const response = await fetch(finalUrl, {
       ...options,
