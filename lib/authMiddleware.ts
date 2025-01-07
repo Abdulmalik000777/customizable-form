@@ -13,22 +13,15 @@ export function authMiddleware(
   res: NextApiResponse
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const authHeader =
-      req.headers["authorization"] || req.headers["Authorization"];
+    const authHeader = req.headers.authorization;
 
-    if (
-      !authHeader ||
-      (typeof authHeader === "string" && !authHeader.startsWith("Bearer "))
-    ) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({ message: "Unauthorized: No token provided" });
       reject(new Error("Unauthorized: No token provided"));
       return;
     }
 
-    const token =
-      typeof authHeader === "string"
-        ? authHeader.split(" ")[1]
-        : authHeader[0].split(" ")[1];
+    const token = authHeader.split(" ")[1];
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
@@ -38,6 +31,7 @@ export function authMiddleware(
       req.user = decoded;
       resolve();
     } catch (error) {
+      console.error("Token verification error:", error);
       res.status(401).json({ message: "Unauthorized: Invalid token" });
       reject(new Error("Unauthorized: Invalid token"));
     }

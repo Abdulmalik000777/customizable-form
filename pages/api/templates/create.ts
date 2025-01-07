@@ -35,7 +35,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
             create: questions.map((q: any) => ({
               type: q.type,
               title: q.title,
-              description: q.description,
               required: q.required,
             })),
           },
