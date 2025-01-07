@@ -4,13 +4,30 @@ import { LanguageProvider } from "../contexts/language-context";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
+
+// Add this error boundary component
+function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    const handleError = (error: ErrorEvent) => {
+      console.error("Uncaught error:", error.error);
+    };
+
+    window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
+  }, []);
+
+  return <>{children}</>;
+}
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
       <LanguageProvider>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Component {...pageProps} key={useRouter().locale || "default"} />
+          <ErrorBoundary>
+            <Component {...pageProps} key={useRouter().locale || "default"} />
+          </ErrorBoundary>
         </ThemeProvider>
       </LanguageProvider>
     </AuthProvider>
