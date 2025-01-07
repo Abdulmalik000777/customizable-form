@@ -37,3 +37,4 @@ export function authMiddleware(
     }
   });
 }
+// need to add error handling

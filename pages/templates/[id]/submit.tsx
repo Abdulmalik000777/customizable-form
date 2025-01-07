@@ -20,7 +20,7 @@ import {
 } from "../../../components/ui/alert";
 import { AlertCircle, Loader2, CheckCircle } from "lucide-react";
 import { fetchWithAuth } from "../../../utils/api";
-import { ProtectedRoute } from "../../../components/protected-route";
+import { useAuth } from "../../../contexts/auth-context";
 import { Progress } from "../../../components/ui/progress";
 
 interface Question {
@@ -44,6 +44,7 @@ interface Template {
 }
 
 function SubmitFormPage() {
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const { id } = router.query;
   const [template, setTemplate] = useState<Template | null>(null);
@@ -56,38 +57,33 @@ function SubmitFormPage() {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    async function fetchTemplate() {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetchWithAuth(`/api/templates/${id}`);
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.push("/login");
-            return;
-          }
-          throw new Error("Failed to fetch template");
-        }
-        const data = await response.json();
-        setTemplate(data);
-        setAnswers(
-          Object.fromEntries(data.questions.map((q: Question) => [q.id, ""]))
-        );
-      } catch (error) {
-        console.error("Error fetching template:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred"
-        );
-      } finally {
-        setLoading(false);
-      }
+    if (!isAuthenticated) {
+      router.push("/login");
+    } else if (id) {
+      fetchTemplate();
     }
+  }, [isAuthenticated, router, id]);
 
-    fetchTemplate();
-  }, [id]);
+  async function fetchTemplate() {
+    try {
+      const response = await fetchWithAuth(`/api/templates/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch template");
+      }
+      const data = await response.json();
+      setTemplate(data);
+      setAnswers(
+        Object.fromEntries(data.questions.map((q: Question) => [q.id, ""]))
+      );
+    } catch (error) {
+      console.error("Error fetching template:", error);
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleInputChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -107,10 +103,18 @@ function SubmitFormPage() {
       if (isNaN(numValue)) {
         error = "Must be a number";
       } else {
-        if (question.minValue !== undefined && numValue < question.minValue) {
+        if (
+          question.minValue !== null &&
+          question.minValue !== undefined &&
+          numValue < question.minValue
+        ) {
           error = `Must be at least ${question.minValue}`;
         }
-        if (question.maxValue !== undefined && numValue > question.maxValue) {
+        if (
+          question.maxValue !== null &&
+          question.maxValue !== undefined &&
+          numValue > question.maxValue
+        ) {
           error = `Must be at most ${question.maxValue}`;
         }
       }
@@ -160,10 +164,6 @@ function SubmitFormPage() {
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          router.push("/login");
-          return;
-        }
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to submit form");
       }
@@ -193,6 +193,10 @@ function SubmitFormPage() {
       setCurrentStep(currentStep - 1);
     }
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -337,10 +341,4 @@ function SubmitFormPage() {
   );
 }
 
-export default function SubmitForm() {
-  return (
-    <ProtectedRoute>
-      <SubmitFormPage />
-    </ProtectedRoute>
-  );
-}
+export default SubmitFormPage;
