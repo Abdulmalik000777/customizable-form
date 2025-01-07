@@ -55,21 +55,43 @@ function SubmitFormPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [networkError, setNetworkError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-    } else if (id) {
-      fetchTemplate();
-    }
+    const initializeForm = async () => {
+      try {
+        setIsInitializing(true);
+        if (!isAuthenticated) {
+          router.push("/login");
+          return;
+        }
+
+        if (id) {
+          await fetchTemplate();
+        }
+      } catch (error) {
+        console.error("Initialization error:", error);
+        setNetworkError("Failed to initialize form. Please try again.");
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeForm();
   }, [isAuthenticated, router, id]);
 
   async function fetchTemplate() {
     try {
+      setLoading(true);
+      setError(null);
+
       const response = await fetchWithAuth(`/api/templates/${id}`);
+
       if (!response.ok) {
         throw new Error("Failed to fetch template");
       }
+
       const data = await response.json();
       setTemplate(data);
       setAnswers(
@@ -77,9 +99,7 @@ function SubmitFormPage() {
       );
     } catch (error) {
       console.error("Error fetching template:", error);
-      setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
-      );
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -141,25 +161,32 @@ function SubmitFormPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-
-    // Validate all fields before submission
-    template?.questions.forEach((question) => {
-      validateField(question.id, answers[question.id]);
-    });
-
-    if (Object.values(errors).some((error) => error !== "")) {
-      setSubmitting(false);
-      return;
-    }
 
     try {
+      setSubmitting(true);
+      setError(null);
+      setNetworkError(null);
+
+      // Validate all fields before submission
+      let hasErrors = false;
+      template?.questions.forEach((question) => {
+        validateField(question.id, answers[question.id]);
+        if (errors[question.id]) hasErrors = true;
+      });
+
+      if (hasErrors) {
+        setError("Please fix the errors before submitting.");
+        return;
+      }
+
       const response = await fetchWithAuth("/api/submissions/create", {
         method: "POST",
         body: JSON.stringify({
           templateId: template?.id,
-          answers: Object.values(answers),
+          answers: Object.entries(answers).map(([questionId, value]) => ({
+            questionId,
+            value: value.toString(),
+          })),
         }),
       });
 
@@ -174,7 +201,7 @@ function SubmitFormPage() {
       }, 2000);
     } catch (error) {
       console.error("Error submitting form:", error);
-      setError(
+      setNetworkError(
         error instanceof Error ? error.message : "An unexpected error occurred"
       );
     } finally {
@@ -196,6 +223,38 @@ function SubmitFormPage() {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  if (isInitializing) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin mb-4" />
+          <p className="text-muted-foreground">Loading form...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (networkError) {
+    return (
+      <Layout>
+        <Alert variant="destructive" className="max-w-2xl mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {networkError}
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </Layout>
+    );
   }
 
   if (loading) {

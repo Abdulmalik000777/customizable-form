@@ -7,61 +7,47 @@ import {
 
 const prisma = new PrismaClient();
 
-interface Question {
-  id: string;
-  type: string;
-  title: string;
-  description: string | null;
-  required: boolean;
-  templateId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  minLength?: number | null;
-  maxLength?: number | null;
-  minValue?: number | null;
-  maxValue?: number | null;
-  regex?: string | null;
-}
-
-interface Template {
-  id: string;
-  questions: Question[];
-}
-
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  if (req.method === "POST") {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { templateId, answers } = req.body;
+
+    if (!templateId || !answers || !Array.isArray(answers)) {
+      return res.status(400).json({ error: "Invalid input data" });
+    }
+
+    // Validate user authentication
+    if (!req.user?.userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    // Check if template exists and belongs to user
+    const template = await prisma.template.findFirst({
+      where: {
+        id: templateId,
+      },
+      include: {
+        questions: true,
+      },
+    });
+
+    if (!template) {
+      return res.status(404).json({ error: "Template not found" });
+    }
+
+    // Create submission with error handling
     try {
-      const { templateId, answers } = req.body;
-
-      // Validate input
-      if (!templateId || !answers || !Array.isArray(answers)) {
-        return res.status(400).json({ error: "Invalid input" });
-      }
-
-      // Check if the template exists
-      const template = await prisma.template.findUnique({
-        where: { id: templateId },
-        include: { questions: true },
-      });
-
-      if (!template) {
-        return res.status(404).json({ error: "Template not found" });
-      }
-
-      // Validate answers against template questions
-      if (answers.length !== template.questions.length) {
-        return res.status(400).json({ error: "Invalid number of answers" });
-      }
-
-      // Create submission
       const submission = await prisma.submission.create({
         data: {
-          templateId: template.id,
-          userId: req.user!.userId,
+          templateId,
+          userId: req.user.userId,
           answers: {
-            create: answers.map((answer, index) => ({
-              questionId: template.questions[index].id,
-              value: answer,
+            create: answers.map((answer: any) => ({
+              questionId: answer.questionId,
+              value: answer.value,
             })),
           },
         },
@@ -70,16 +56,16 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         },
       });
 
-      res.status(201).json(submission);
+      return res.status(201).json(submission);
     } catch (error) {
-      console.error("Error creating submission:", error);
-      res.status(500).json({ error: "Error creating submission" });
-    } finally {
-      await prisma.$disconnect();
+      console.error("Database error:", error);
+      return res.status(500).json({ error: "Failed to create submission" });
     }
-  } else {
-    res.setHeader("Allow", ["POST"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
