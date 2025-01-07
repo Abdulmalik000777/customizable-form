@@ -32,13 +32,15 @@ export default function Login() {
         throw new Error(data.message || "Login failed");
       }
 
-      const { token } = data;
-      login(token);
+      const { token, expiresAt } = data;
+      login(token, expiresAt);
       router.push("/templates");
     } catch (error) {
       console.error("Login error:", error);
       setError(
-        error instanceof Error ? error.message : "Invalid email or password"
+        error instanceof Error
+          ? error.message
+          : "Invalid email or password or missing expiration time"
       );
     }
   };

@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { GetServerSideProps } from "next";
+import { PrismaClient } from "@prisma/client";
 import { useRouter } from "next/router";
 import Layout from "../../components/layout";
 import {
@@ -6,17 +8,19 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   AlertCircle,
   Edit,
   Trash2,
   FileText,
-  List,
+  Eye,
   BarChart2,
+  ArrowLeft,
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,11 +31,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "../../components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { fetchWithAuth } from "../../utils/api";
-import { GetServerSideProps } from "next";
-import { PrismaClient } from "@prisma/client";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 interface Question {
   id: string;
@@ -56,115 +60,41 @@ interface TemplateProps {
 
 export default function TemplatePage({ template, error }: TemplateProps) {
   const router = useRouter();
-  const { id } = router.query;
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [templateState, setTemplate] = useState<Template | null>(null);
-  const [fetchError, setError] = useState<string | null>(null);
-
-  const fetchTemplate = async () => {
-    if (!id) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetchWithAuth(`/api/templates/${id}`);
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push("/login");
-          return;
-        }
-        if (response.status === 404) {
-          throw new Error("Template not found");
-        }
-        throw new Error("Failed to fetch template");
-      }
-      const data = await response.json();
-      setTemplate(data);
-    } catch (error) {
-      console.error("Error fetching template:", error);
-      setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      fetchTemplate();
-    }
-  }, [id]);
+  const { t } = useTranslation("common");
 
   const handleDelete = async () => {
     setIsDeleting(true);
     setDeleteError(null);
 
     try {
-      const response = await fetchWithAuth(
-        `/api/templates/${templateState?.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetchWithAuth(`/api/templates/${template?.id}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete template");
+        throw new Error("Failed to delete template");
       }
 
       router.push("/templates");
     } catch (error) {
       console.error("Error deleting template:", error);
-      setDeleteError(
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred while deleting the template. Please try again."
-      );
-      // Add a retry mechanism
-      setTimeout(() => {
-        setDeleteError(null);
-        setIsDeleting(false);
-      }, 5000); // Allow retry after 5 seconds
+      setDeleteError("An error occurred while deleting the template");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  if (error) {
+  if (error || !template) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{error || "Template not found"}</AlertDescription>
           </Alert>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!templateState && !loading) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>Template not found</AlertDescription>
-          </Alert>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <p>Loading...</p>
         </div>
       </Layout>
     );
@@ -172,123 +102,180 @@ export default function TemplatePage({ template, error }: TemplateProps) {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        {templateState ? (
-          <>
-            <div className="mb-6 flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">
-                  {templateState?.title}
-                </h1>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {templateState?.description}
-                </p>
-              </div>
-              <div className="space-x-2">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="text-muted-foreground hover:text-foreground w-full bg-background/50 hover:bg-accent/30 hover:scale-105 hover:-rotate-1 border-accent/20 transition-all duration-300 shadow-md hover:shadow-xl hover:border-accent/50"
+            >
+              <Link href="/templates" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Templates</span>
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-4 gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="w-full bg-background/50 hover:bg-accent/30 hover:scale-105 hover:-rotate-1 border-accent/20 transition-all duration-300 shadow-md hover:shadow-xl hover:border-accent/50"
+            >
+              <Link
+                href={`/templates/${template.id}/edit`}
+                className="flex items-center justify-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Edit Template</span>
+              </Link>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="w-full bg-background/50 hover:bg-accent/30 hover:scale-105 hover:-rotate-1 border-accent/20 transition-all duration-300 shadow-md hover:shadow-xl hover:border-accent/50"
+            >
+              <Link
+                href={`/templates/${template.id}/submit`}
+                className="flex items-center justify-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Fill Out Form</span>
+              </Link>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="w-full bg-background/50 hover:bg-accent/30 hover:scale-105 hover:-rotate-1 border-accent/20 transition-all duration-300 shadow-md hover:shadow-xl hover:border-accent/50"
+            >
+              <Link
+                href={`/templates/${template.id}/submissions`}
+                className="flex items-center justify-center gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                <span>View Submissions</span>
+              </Link>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="w-full bg-background/50 hover:bg-accent/30 hover:scale-105 hover:-rotate-1 border-accent/20 transition-all duration-300 shadow-md hover:shadow-xl hover:border-accent/50"
+            >
+              <Link
+                href={`/templates/${template.id}/dashboard`}
+                className="flex items-center justify-center gap-2"
+              >
+                <BarChart2 className="w-4 h-4" />
+                <span>View Responses</span>
+              </Link>
+            </Button>
+          </div>
+          <div className="mt-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
                 <Button
-                  variant="outline"
-                  onClick={() =>
-                    router.push(`/templates/${templateState?.id}/edit`)
-                  }
+                  variant="destructive"
+                  size="lg"
+                  className="w-full hover:scale-105 hover:-rotate-1 transition-all duration-300 shadow-md hover:shadow-xl bg-destructive hover:bg-destructive/90"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  <span>Delete Template</span>
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href={`/templates/${templateState?.id}/submit`}>
-                    <FileText className="w-4 h-4 mr-2" />
-                    Fill Out Form
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link href={`/templates/${templateState?.id}/submissions`}>
-                    <List className="w-4 h-4 mr-2" />
-                    View Submissions
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link href={`/templates/${templateState?.id}/dashboard`}>
-                    <BarChart2 className="w-4 h-4 mr-2" />
-                    View Dashboard
-                  </Link>
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      {deleteError ? "Retry Delete" : "Delete"}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you absolutely sure?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the template and all associated questions and
-                        submissions.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your template and all of its data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
 
-            {deleteError && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{deleteError}</AlertDescription>
-              </Alert>
+        <Card className="mt-8 mb-8 border-accent/20 bg-accent/5">
+          <CardHeader>
+            <CardTitle className="text-3xl">{template.title}</CardTitle>
+            {template.description && (
+              <CardDescription className="text-lg">
+                {template.description}
+              </CardDescription>
             )}
+          </CardHeader>
+        </Card>
 
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4">Questions</h2>
-              {templateState?.questions.map((question, index) => (
-                <Card key={question.id} className="mb-4">
-                  <CardHeader>
-                    <CardTitle className="text-xl">
-                      {index + 1}. {question.title}
-                      {question.required && (
-                        <span className="text-red-500 ml-2">*</span>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 dark:text-gray-300 mb-2">
-                      {question.description}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Type: {question.type}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="mt-8">
-              <Button asChild>
-                <Link href="/templates">Back to Templates</Link>
-              </Button>
-            </div>
-          </>
-        ) : (
-          <Alert variant="destructive">
+        {deleteError && (
+          <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>Template not found</AlertDescription>
+            <AlertDescription>{deleteError}</AlertDescription>
           </Alert>
         )}
+
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold">Questions</h2>
+          {template.questions.length === 0 ? (
+            <Card className="border-accent/20 bg-accent/5">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <p className="text-muted-foreground">No questions added yet.</p>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="mt-4 bg-background/50 hover:bg-accent/30 hover:scale-105 hover:-rotate-1 border-accent/20 transition-all duration-300 shadow-md hover:shadow-xl hover:border-accent/50"
+                >
+                  <Link href={`/templates/${template.id}/edit`}>
+                    Add Questions
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            template.questions.map((question, index) => (
+              <Card
+                key={question.id}
+                className="transition-all duration-300 border-accent/20 bg-accent/5 hover:bg-accent/20 hover:border-accent/50 hover:scale-[1.02] hover:shadow-lg"
+              >
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span>{index + 1}.</span> {question.title}
+                    {question.required && (
+                      <span className="text-destructive text-sm">Required</span>
+                    )}
+                  </CardTitle>
+                  {question.description && (
+                    <CardDescription>{question.description}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground">
+                    Type: {question.type.replace("-", " ")}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </Layout>
   );

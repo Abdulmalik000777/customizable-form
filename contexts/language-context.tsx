@@ -57,7 +57,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       await i18n.changeLanguage(lang);
       setLanguage(lang);
       localStorage.setItem("language", lang);
-      // Force re-render by updating document language and triggering a state update
       document.documentElement.lang = lang;
       window.dispatchEvent(new Event("languagechange"));
     } catch (error) {

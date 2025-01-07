@@ -10,24 +10,28 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
       ...options.headers,
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      // Add a cache-busting query parameter
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
     };
 
-    // Add base URL for production
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
     const finalUrl = `${baseUrl}${url}`;
 
-    const response = await fetch(finalUrl, {
+    // Add a cache-busting query parameter
+    const urlWithCacheBuster = `${finalUrl}${
+      finalUrl.includes("?") ? "&" : "?"
+    }_t=${Date.now()}`;
+
+    const response = await fetch(urlWithCacheBuster, {
       ...options,
       headers,
-      // Add credentials for cookie handling
       credentials: "include",
     });
 
-    // Handle token expiration
     if (response.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-      throw new Error("Session expired. Please login again.");
+      // Token might be expired, throw an error to be handled by the component
+      throw new Error("Unauthorized: Token might be expired");
     }
 
     return response;

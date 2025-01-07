@@ -21,12 +21,14 @@ function ErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+
   return (
     <AuthProvider>
       <LanguageProvider>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <ErrorBoundary>
-            <Component {...pageProps} key={useRouter().locale || "default"} />
+            <Component {...pageProps} key={router.locale || "default"} />
           </ErrorBoundary>
         </ThemeProvider>
       </LanguageProvider>

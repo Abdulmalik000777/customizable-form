@@ -26,13 +26,20 @@ export default async function handler(
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    const expiresIn = "1h";
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
+      { expiresIn }
     );
 
-    res.status(200).json({ token, userId: user.id });
+    const expirationTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+    res.status(200).json({
+      token,
+      userId: user.id,
+      expiresAt: expirationTime.toISOString(),
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Error logging in" });

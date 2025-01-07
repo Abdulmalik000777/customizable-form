@@ -50,21 +50,22 @@
     "registerError": "Failed to create account"
   },
   "templates": {
-    "title": "Templates",
-    "subtitle": "Create and manage your form templates",
-    "createNew": "Create Template",
-    "loading": "Loading templates...",
-    "noTemplates": "No templates yet",
-    "createFirst": "Create your first template to get started",
+    "title": "Form Templates",
+    "subtitle": "Design and organize your custom form templates",
+    "createNew": "New Template",
+    "loading": "Loading your templates...",
+    "noTemplates": "No Templates Yet",
+    "createFirst": "Create your first template to start collecting responses",
     "createTemplate": "Create Template",
-    "noDescription": "No description provided",
+    "noDescription": "No description provided for this template",
     "view": "View Template",
-    "questionCount": "{{count}} questions",
+    "viewQuestions": "See Questions",
+    "questionCount": "{{count}} Questions",
     "fetchError": "Failed to fetch templates",
     "unexpectedError": "An unexpected error occurred",
     "delete": "Delete",
-    "deleteConfirmTitle": "Are you sure?",
-    "deleteConfirmDescription": "This action cannot be undone. This will permanently delete the template and all its data."
+    "deleteConfirmTitle": "Delete Template?",
+    "deleteConfirmDescription": "This will permanently delete this template and all its questions. This action cannot be undone."
   },
   "createTemplate": {
     "title": "Create New Template",
@@ -101,11 +102,11 @@
     "somethingWentWrong": "Something went wrong"
   },
   "search": {
-    "placeholder": "Search templates...",
+    "placeholder": "Search your templates...",
     "results": "Search results for \"{{query}}\"",
     "loading": "Searching...",
-    "noResults": "No results found",
-    "tryDifferentQuery": "Try a different search query"
+    "noResults": "No matching templates",
+    "tryDifferentQuery": "Try adjusting your search terms or create a new template"
   },
   "dashboard": {
     "title": "Dashboard",

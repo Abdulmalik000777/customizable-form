@@ -1,35 +1,33 @@
-import { createClient } from "@supabase/supabase-js";
+import jwt from "jsonwebtoken";
+import prisma from "./prisma";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export async function refreshToken(oldToken: string): Promise<string | null> {
+  try {
+    const decoded = jwt.decode(oldToken) as {
+      userId: string;
+      email: string;
+    } | null;
+    if (!decoded) {
+      throw new Error("Invalid token");
+    }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
 
-export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-  return { data, error };
-}
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  return { data, error };
-}
+    const newToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
 
-export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  return { error };
-}
-
-export async function getCurrentUser() {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-  return session?.user || null;
+    return newToken;
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    return null;
+  }
 }

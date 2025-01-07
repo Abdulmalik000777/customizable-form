@@ -7,10 +7,21 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Plus, Loader2, AlertCircle } from "lucide-react";
+import {
+  Plus,
+  Loader2,
+  AlertCircle,
+  Eye,
+  FileText,
+  Trash2,
+  Search,
+  Calendar,
+  HelpCircle,
+} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { fetchWithAuth } from "../../utils/api";
 import { useAuth } from "../../contexts/auth-context";
@@ -42,7 +53,7 @@ function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { logout } = useAuth();
+  const { logout, refreshAuthToken } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { t } = useTranslation("common");
 
@@ -51,15 +62,19 @@ function TemplatesPage() {
   const fetchTemplates = async () => {
     try {
       const response = await fetchWithAuth("/api/templates");
-      if (!response.ok) {
-        if (response.status === 401) {
-          logout();
-          return;
-        }
+      if (response.status === 401) {
+        await refreshAuthToken();
+        // Retry the request after refreshing the token
+        const retryResponse = await fetchWithAuth("/api/templates");
+        if (!retryResponse.ok) throw new Error("Failed to fetch templates");
+        const data = await retryResponse.json();
+        setTemplates(data);
+      } else if (!response.ok) {
         throw new Error("Failed to fetch templates");
+      } else {
+        const data = await response.json();
+        setTemplates(data);
       }
-      const data = await response.json();
-      setTemplates(data);
     } catch (error) {
       console.error("Error fetching templates:", error);
       setError(
@@ -72,7 +87,7 @@ function TemplatesPage() {
 
   useEffect(() => {
     fetchTemplates();
-  }, [logout]);
+  }, []);
 
   const filteredTemplates = templates.filter(
     (template) =>
@@ -105,7 +120,7 @@ function TemplatesPage() {
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-lg text-muted-foreground">
             {t("templates.loading")}
           </p>
         </div>
@@ -116,16 +131,16 @@ function TemplatesPage() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+            <h1 className="text-4xl font-bold tracking-tight mb-2">
               {t("templates.title")}
             </h1>
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-lg text-muted-foreground">
               {t("templates.subtitle")}
             </p>
           </div>
-          <Button asChild className="h-10">
+          <Button asChild size="lg" className="shadow-lg">
             <Link href="/templates/create">
               <Plus className="w-5 h-5 mr-2" />
               {t("templates.createNew")}
@@ -133,40 +148,52 @@ function TemplatesPage() {
           </Button>
         </div>
 
-        <div className="mb-6">
+        <div className="relative mb-8">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder={t("search.placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-md"
+            className="pl-10 max-w-md"
           />
         </div>
 
-        {error ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+            <p className="text-lg text-muted-foreground">
+              {t("templates.loading")}
+            </p>
+          </div>
+        ) : error ? (
           <Alert variant="destructive" className="mb-8">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t("common.error")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : filteredTemplates.length === 0 ? (
-          <Card>
+          <Card className="bg-muted/50">
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="rounded-full bg-primary/10 p-4 mb-4">
-                <Plus className="w-8 h-8 text-primary" />
+              <div className="rounded-full bg-primary/10 p-6 mb-4">
+                {searchQuery ? (
+                  <Search className="w-10 h-10 text-primary" />
+                ) : (
+                  <HelpCircle className="w-10 h-10 text-primary" />
+                )}
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-center">
+              <h3 className="text-2xl font-semibold mb-2 text-center">
                 {searchQuery
                   ? t("search.noResults")
                   : t("templates.noTemplates")}
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-center mb-6">
+              <p className="text-muted-foreground text-center mb-6 max-w-sm">
                 {searchQuery
                   ? t("search.tryDifferentQuery")
                   : t("templates.createFirst")}
               </p>
               {!searchQuery && (
-                <Button asChild>
+                <Button asChild size="lg">
                   <Link href="/templates/create">
                     <Plus className="w-5 h-5 mr-2" />
                     {t("templates.createTemplate")}
@@ -180,56 +207,71 @@ function TemplatesPage() {
             {filteredTemplates.map((template) => (
               <Card
                 key={template.id}
-                className="hover:shadow-lg transition-shadow"
+                className="group hover:shadow-lg transition-all duration-300 border-primary/10"
               >
                 <CardHeader>
-                  <CardTitle className="text-xl">{template.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                    {template.description || t("templates.noDescription")}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(template.createdAt).toLocaleDateString()} •{" "}
+                  <CardTitle className="text-xl font-semibold line-clamp-1">
+                    {template.title}
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4" />
+                    {new Date(template.createdAt).toLocaleDateString()}
+                    <span className="text-primary font-medium">
                       {t("templates.questionCount", {
                         count: template._count.questions,
                       })}
                     </span>
-                    <div className="space-x-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/templates/${template.id}`}>
-                          View Questions
-                        </Link>
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            {t("templates.delete")}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {t("templates.deleteConfirmTitle")}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t("templates.deleteConfirmDescription")}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>
-                              {t("common.cancel")}
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteTemplate(template.id)}
-                            >
-                              {t("common.delete")}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-6 line-clamp-2 min-h-[3rem]">
+                    {template.description || t("templates.noDescription")}
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      asChild
+                      className="flex-1 group-hover:border-primary/20"
+                    >
+                      <Link href={`/templates/${template.id}`}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        {t("templates.viewQuestions")}
+                      </Link>
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex-1"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          {t("templates.delete")}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            {t("templates.deleteConfirmTitle")}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t("templates.deleteConfirmDescription")}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>
+                            {t("common.cancel")}
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteTemplate(template.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {t("common.delete")}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
