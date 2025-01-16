@@ -18,32 +18,39 @@ async function main() {
   const template = await prisma.template.create({
     data: {
       title: "Customer Feedback Form",
-      description: "A form to collect customer feedback",
       userId: user.id,
       questions: {
         create: [
           {
-            type: "short-text",
             title: "What is your name?",
-            description: "Please enter your full name",
+            type: "short-text",
             required: true,
           },
           {
-            type: "long-text",
             title: "How was your experience?",
-            description: "Please describe your experience with our service",
+            type: "long-text",
             required: true,
           },
           {
-            type: "number",
             title: "How would you rate our service?",
-            description: "On a scale of 1-10, with 10 being the best",
+            type: "number",
             required: true,
-            minValue: 1,
-            maxValue: 10,
+          },
+          {
+            title: "Would you recommend us to a friend?",
+            type: "checkbox",
+            required: true,
+          },
+          {
+            title: "Which of our products did you use?",
+            type: "multiple_choice",
+            required: true,
           },
         ],
       },
+    },
+    include: {
+      questions: true,
     },
   });
 

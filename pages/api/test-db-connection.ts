@@ -19,11 +19,11 @@ export default async function handler(
       // If successful, return the users
       res
         .status(200)
-        .json({ message: "Supabase connection successful", users });
+        .json({ message: "Database connection successful", users });
     } catch (error) {
-      console.error("Supabase connection error:", error);
+      console.error("Database connection error:", error);
       res.status(500).json({
-        error: "Failed to connect to Supabase",
+        error: "Failed to connect to the database",
         details: error instanceof Error ? error.message : String(error),
       });
     }

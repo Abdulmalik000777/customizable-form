@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_DIRECT")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -13,11 +13,11 @@ model User {
   name        String
   email       String       @unique
   password    String
+  templates   Template[]
+  submissions Submission[]
+  responses   Response[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  responses   Response[]
-  submissions Submission[]
-  templates   Template[]
 }
 
 model Template {
@@ -27,10 +27,10 @@ model Template {
   userId      String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  questions   Question[]
-  responses   Response[]
-  submissions Submission[]
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  submissions Submission[]
+  responses   Response[]
 }
 
 model Question {
@@ -40,21 +40,21 @@ model Question {
   description String?
   required    Boolean  @default(false)
   templateId  String
+  template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  answers     Answer[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  answers     Answer[]
-  template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }
 
 model Submission {
   id         String   @id @default(cuid())
   templateId String
+  template   Template @relation(fields: [templateId], references: [id])
   userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  answers    Answer[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  answers    Answer[]
-  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Answer {
@@ -77,3 +77,4 @@ model Response {
   template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+

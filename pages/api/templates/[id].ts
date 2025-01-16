@@ -35,22 +35,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     try {
       const { title, description, questions } = req.body;
 
-      // Fetch the original template
-      const originalTemplate = await prisma.template.findFirst({
-        where: {
-          id: String(id),
-          userId: req.user!.userId,
-        },
-        include: {
-          questions: true,
-        },
-      });
-
-      if (!originalTemplate) {
-        return res.status(404).json({ error: "Template not found" });
-      }
-
-      // Update the template
       const updatedTemplate = await prisma.template.update({
         where: { id: String(id) },
         data: {
@@ -63,11 +47,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
               title: q.title,
               description: q.description,
               required: q.required,
-              minLength: q.minLength,
-              maxLength: q.maxLength,
-              minValue: q.minValue,
-              maxValue: q.maxValue,
-              regex: q.regex,
             })),
           },
         },
